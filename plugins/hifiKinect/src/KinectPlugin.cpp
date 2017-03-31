@@ -494,6 +494,7 @@ void KinectPlugin::ProcessBody(INT64 time, int bodyCount, IBody** bodies) {
                                 //_joints[j].orientation = jointOrientation;
                                 if (joints[j].JointType == JointType_HandRight) {
                                     static const quat kinectToHandRight = glm::angleAxis(-PI / 2.0f, Vectors::UNIT_Y);
+									// add moving average of orientation quaternion 
                                     _joints[j].orientation = jointOrientation * kinectToHandRight;
                                 }  else if (joints[j].JointType == JointType_HandLeft) {
                                     // To transform from Kinect to our LEFT  Hand.... Postive 90 deg around Y
