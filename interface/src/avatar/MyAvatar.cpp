@@ -1307,17 +1307,6 @@ static controller::Pose applyLowVelocityFilter(const controller::Pose& oldPose, 
     return finalPose;
 }
 
-void MyAvatar::setHandControllerPosesInSensorFrame(const controller::Pose& left, const controller::Pose& right) {
-    if (controller::InputDevice::getLowVelocityFilter()) {
-        auto oldLeftPose = getLeftHandControllerPoseInSensorFrame();
-        auto oldRightPose = getRightHandControllerPoseInSensorFrame();
-        _leftHandControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldLeftPose, left));
-        _rightHandControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldRightPose, right));
-    } else {
-        _leftHandControllerPoseInSensorFrameCache.set(left);
-        _rightHandControllerPoseInSensorFrameCache.set(right);
-    }
-}
 
 controller::Pose MyAvatar::getLeftHandControllerPoseInSensorFrame() const {
     return _leftHandControllerPoseInSensorFrameCache.get();
@@ -1357,6 +1346,20 @@ void MyAvatar::setFootControllerPosesInSensorFrame(const controller::Pose& left,
     }
 }
 
+void MyAvatar::setHandControllerPosesInSensorFrame(const controller::Pose& left, const controller::Pose& right) {
+	if (controller::InputDevice::getLowVelocityFilter()) {
+		auto oldLeftPose = getLeftHandControllerPoseInSensorFrame();
+		auto oldRightPose = getRightHandControllerPoseInSensorFrame();
+		_leftHandControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldLeftPose, left));
+		_rightHandControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldRightPose, right));
+	}
+	else {
+		_leftHandControllerPoseInSensorFrameCache.set(left);
+		_rightHandControllerPoseInSensorFrameCache.set(right);
+	}
+}
+
+
 controller::Pose MyAvatar::getLeftFootControllerPoseInSensorFrame() const {
     return _leftFootControllerPoseInSensorFrameCache.get();
 }
@@ -1383,6 +1386,49 @@ controller::Pose MyAvatar::getRightFootControllerPoseInAvatarFrame() const {
     return getRightFootControllerPoseInWorldFrame().transform(invAvatarMatrix);
 }
 
+
+void MyAvatar::setHipControllerPosesInSensorFrame(const controller::Pose& left, const controller::Pose& right)
+{
+	if (controller::InputDevice::getLowVelocityFilter()) {
+		auto oldLeftPose = getLeftHipControllerPoseInSensorFrame();
+		auto oldRightPose = getRightHipControllerPoseInSensorFrame();
+		_leftHipControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldLeftPose, left));
+		_rightHipControllerPoseInSensorFrameCache.set(applyLowVelocityFilter(oldRightPose, right));
+	}
+	else {
+		_leftHipControllerPoseInSensorFrameCache.set(left);
+		_rightHipControllerPoseInSensorFrameCache.set(right);
+	}
+}
+
+
+controller::Pose MyAvatar::getLeftHipControllerPoseInSensorFrame() const {
+	return _leftHipControllerPoseInSensorFrameCache.get();
+}
+
+controller::Pose MyAvatar::getRightHipControllerPoseInSensorFrame() const {
+	return _rightHipControllerPoseInSensorFrameCache.get();
+}
+
+controller::Pose MyAvatar::getLeftHipControllerPoseInWorldFrame() const {
+		return _leftHipControllerPoseInSensorFrameCache.get().transform(getSensorToWorldMatrix());
+
+}
+
+controller::Pose MyAvatar::getRightHipControllerPoseInWorldFrame() const {
+		return _rightHipControllerPoseInSensorFrameCache.get();
+}
+
+controller::Pose MyAvatar::getLeftHipControllerPoseInAvatarFrame() const {
+	glm::mat4 invAvatarMatrix = glm::inverse(createMatFromQuatAndPos(getOrientation(), getPosition()));
+	return getLeftHipControllerPoseInWorldFrame().transform(invAvatarMatrix);
+}
+
+
+controller::Pose MyAvatar::getRightHipControllerPoseInAvatarFrame() const {
+	glm::mat4 invAvatarMatrix = glm::inverse(createMatFromQuatAndPos(getOrientation(), getPosition()));
+	return getRightHipControllerPoseInWorldFrame().transform(invAvatarMatrix);
+}
 
 void MyAvatar::updateMotors() {
     _characterController.clearMotors();
