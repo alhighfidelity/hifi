@@ -50,19 +50,15 @@
         },
 
         { "from": "Standard.RY", "to": "Actions.Up", "filters": "invert"},
-
         { "from": "Standard.Back", "to": "Actions.CycleCamera" },
         { "from": "Standard.Start", "to": "Actions.ContextMenu" },
-
         { "from": "Standard.LT", "to": "Actions.LeftHandClick" },
         { "from": "Standard.RT", "to": "Actions.RightHandClick" },
-
         { "from": "Standard.LeftHand", "to": "Actions.LeftHand" },
         { "from": "Standard.RightHand", "to": "Actions.RightHand" },
-
         { "from": "Standard.LeftFoot", "to": "Actions.LeftFoot" },
         { "from": "Standard.RightFoot", "to": "Actions.RightFoot" },
-		{ "from": "Standard.HipLeft", "to": "Actions.HipLeft"},
-		{ "from": "Standard.HipRight", "to": "Actions.HipRight"}
+        { "from": "Standard.HipLeft", "to": "Actions.HipLeft"},
+        { "from": "Standard.HipRight", "to": "Actions.HipRight"}
     ]
 }

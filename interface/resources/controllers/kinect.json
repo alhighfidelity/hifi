@@ -5,7 +5,7 @@
         { "from": "Kinect.RightHand", "to":	"Standard.RightHand" },
         { "from": "Kinect.LeftFoot",  "to":	"Standard.LeftFoot" },
         { "from": "Kinect.RightFoot", "to": "Standard.RightFoot" },
-		{ "from": "Kinect.HipLeft",	  "to": "Standard.HipLeft"},
-		{ "from": "Kinect.HipRight",  "to": "Standard.HipRight"}	   	
+        { "from": "Kinect.HipLeft",	  "to": "Standard.HipLeft"},
+        { "from": "Kinect.HipRight",  "to": "Standard.HipRight"}	   	
     ]
 }
