@@ -70,7 +70,7 @@ private:
 
 protected:
     std::mutex _mutex;
-    std::map<QString, QSharedPointer<TabletProxy>> _tabletProxies;
+    std::map<QString, TabletProxy*> _tabletProxies;
     QObject* _toolbarScriptingInterface { nullptr };
     bool _toolbarMode { false };
 };
@@ -99,7 +99,7 @@ public:
     bool getToolbarMode() const { return _toolbarMode; }
     void setToolbarMode(bool toolbarMode);
 
-    void initialScreen(const QVariant& url);
+    Q_INVOKABLE void initialScreen(const QVariant& url);
 
     /**jsdoc
      * transition to the home screen
@@ -119,6 +119,13 @@ public:
     Q_INVOKABLE void loadQMLSource(const QVariant& path);
     Q_INVOKABLE void pushOntoStack(const QVariant& path);
     Q_INVOKABLE void popFromStack();
+
+    Q_INVOKABLE void loadQMLOnTop(const QVariant& path);
+    Q_INVOKABLE void loadWebScreenOnTop(const QVariant& url);
+    Q_INVOKABLE void loadWebScreenOnTop(const QVariant& url, const QString& injectedJavaScriptUrl);
+    Q_INVOKABLE void returnToPreviousApp();
+
+    
 
     /** jsdoc
      * Check if the tablet has a message dialog open
@@ -183,6 +190,8 @@ public:
     Q_INVOKABLE void setLandscape(bool landscape) { _landscape = landscape; }
     Q_INVOKABLE bool getLandscape() { return _landscape; }
 
+    Q_INVOKABLE bool isPathLoaded(QVariant path);
+
     QQuickItem* getTabletRoot() const { return _qmlTabletRoot; }
 
     QObject* getTabletSurface();
@@ -235,6 +244,7 @@ protected:
 
     bool _initialScreen { false };
     QVariant _initialPath { "" };
+    QVariant _currentPathLoaded { "" };
     QString _name;
     std::mutex _mutex;
     std::vector<QSharedPointer<TabletButtonProxy>> _tabletButtonProxies;
