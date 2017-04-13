@@ -1225,6 +1225,8 @@ void Rig::initAnimGraph(const QUrl& url) {
 
     _animNode.reset();
 
+    qDebug() << __FUNCTION__ << "debug1: url = "<<url.toDisplayString();
+
     // load the anim graph
     _animLoader.reset(new AnimNodeLoader(url));
     connect(_animLoader.get(), &AnimNodeLoader::success, [this](AnimNode::Pointer nodeIn) {
