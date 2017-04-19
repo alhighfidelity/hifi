@@ -628,7 +628,8 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
         glm::vec3 linearVel, angularVel;
 
         // Adjust the position to be hip (avatar) relative, and rotated to match the avatar rotation
-        const glm::vec3& pos = controllerToAvatarRotation * (joints[i].position - kinectHipPos);
+        // const glm::vec3& pos = controllerToAvatarRotation * (joints[i].position - kinectHipPos);
+         const glm::vec3& pos = controllerToAvatarRotation * joints[i].position;            // leave in sensor coordinate space
 
         if (Vectors::ZERO == pos) {
             _poseStateMap[poseIndex] = controller::Pose();
@@ -639,7 +640,8 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
         glm::quat rot = controllerToAvatarRotation * joints[i].orientation;
 
         if (i < prevJoints.size()) {
-            linearVel = (pos - (prevJoints[i].position * METERS_PER_CENTIMETER)) / deltaTime;  // m/s
+            // linearVel = (pos - (prevJoints[i].position * METERS_PER_CENTIMETER)) / deltaTime;  // m/s
+            linearVel = (pos - (prevJoints[i].position)) / deltaTime;  // m/s       // sensor space is in meters
             // quat log imaginary part points along the axis of rotation, with length of one half the angle of rotation.
             glm::quat d = glm::log(rot * glm::inverse(prevJoints[i].orientation));
             angularVel = glm::vec3(d.x, d.y, d.z) / (0.5f * deltaTime); // radians/s
