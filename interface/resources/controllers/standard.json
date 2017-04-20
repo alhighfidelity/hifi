@@ -67,5 +67,6 @@
         { "from": "Standard.Spine2", "to": "Actions.Spine2" },
 
         { "from": "Standard.Head", "to": "Actions.Head" }
+
     ]
 }
