@@ -104,6 +104,7 @@ Input::NamedVector StandardController::getAvailableInputs() const {
         makePair(RIGHT_HAND, "RightHand"),
         makePair(LEFT_FOOT, "LeftFoot"),
         makePair(RIGHT_FOOT, "RightFoot"),
+        makePair(HIPS, "Hips"),
 
         // Aliases, PlayStation style names
         makePair(LB, "L1"),

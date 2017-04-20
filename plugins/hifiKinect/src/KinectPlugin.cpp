@@ -629,7 +629,8 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // Adjust the position to be hip (avatar) relative, and rotated to match the avatar rotation
         // const glm::vec3& pos = controllerToAvatarRotation * (joints[i].position - kinectHipPos);
-         const glm::vec3& pos = controllerToAvatarRotation * joints[i].position;            // leave in sensor coordinate space
+        const glm::vec3 pos_offset(0.0, 0.0, 1.5);              // set a room offset to a z of 1.5 m to allow forward and backward motion
+        const glm::vec3& pos = controllerToAvatarRotation * (joints[i].position - pos_offset);            // leave in sensor coordinate space
 
         if (Vectors::ZERO == pos) {
             _poseStateMap[poseIndex] = controller::Pose();
@@ -638,6 +639,15 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // Note: we want our rotations presenting in the AVATAR frame, so we need to adjust that here.
         glm::quat rot = controllerToAvatarRotation * joints[i].orientation;
+
+        // Test print out joint positions and orientations
+
+        
+        /* QString jointName = kinectJointNames[i];
+        qDebug() << __FUNCTION__ << "joint[" << i << "]:" << jointName
+            << "position:" << joints[i].position
+            << "orientation:" << joints[i].orientation; */
+
 
         if (i < prevJoints.size()) {
             // linearVel = (pos - (prevJoints[i].position * METERS_PER_CENTIMETER)) / deltaTime;  // m/s
