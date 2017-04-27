@@ -62,6 +62,6 @@
 
         { "from": "Standard.LeftFoot", "to": "Actions.LeftFoot" },
         { "from": "Standard.RightFoot", "to": "Actions.RightFoot" }.
-        { "from": "Standard.Hips", "to": "Actions.SpineBase"}
+        { "from": "Standard.Hips", "to": "Actions.Hips"}
     ]
 }

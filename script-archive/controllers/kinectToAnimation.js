@@ -36,12 +36,31 @@ function init() {
     ];
     handlerId = MyAvatar.addAnimationStateHandler(function (props) {
 
+        
+       var d = new Date();
+       var n = d.getMilliseconds();
+       var msg =  n.toString();
+       var msg1 = " recentHips.translation:";
+       var msg = msg.concat(msg1);
        
-        Vec3.print("recentRightHand.translation:", recentRightHand.translation);
-        Vec3.print("recentLeftHand.translation:", recentLeftHand.translation);
-        Vec3.print("recentRightFoot.translation:", recentRightFoot.translation);
-        Vec3.print("recentLeftFoot.translation:", recentLeftFoot.translation);
+       Vec3.print(msg,recentHips.translation);
+       
+       msg2 = n.toString();
+       msg3 = " recentHips.rotation";
+       msg2 = msg2.concat(msg3);
+       
+       Vec3.print(msg2,recentHips.rotation);
+        //Vec3.print("recentLeftHand.translation:", recentLeftHand.translation);
+        //Vec3.print("recentRightFoot.translation:", recentRightFoot.translation);
+        //Vec3.print("recentLeftFoot.translation:", recentLeftFoot.translation);
 
+        
+       
+       
+        
+        
+        //Vec3.print("kinectToAnimation: ",n," recentHips.translation = ",recentHips.translation );
+        //Vec3.print("kinectToAnimation: recentHips.rotation = ",recentHips.rotation );
         return {
 
             rightHandType: ikTypes["RotationAndPosition"],
@@ -59,7 +78,7 @@ function init() {
             leftFootRotation: recentLeftFoot.rotation,
             hipsType:   ikTypes["RotationAndPosition"], 
             hipsPosition: recentHips.translation, 
-            hipsRotation:   recentHips.rotation,
+            hipsRotation: recentHips.rotation
         };
     }, propList);
 
