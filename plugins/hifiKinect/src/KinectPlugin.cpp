@@ -20,6 +20,7 @@
 #include <StreamUtils.h>
 #include <Preferences.h>
 #include <SettingHandle.h>
+#include <QTime>
 
 Q_DECLARE_LOGGING_CATEGORY(inputplugins)
 Q_LOGGING_CATEGORY(inputplugins, "hifi.inputplugins")
@@ -639,6 +640,12 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // Note: we want our rotations presenting in the AVATAR frame, so we need to adjust that here.
         glm::quat rot = controllerToAvatarRotation * joints[i].orientation;
+
+        // rotate the hips by 180 degrees
+
+        if ((JointType)i == JointType_SpineBase) {
+            rot = rot * glm::angleAxis(PI, Vectors::UP);
+        }
 
         // Test print out joint positions and orientations
 
