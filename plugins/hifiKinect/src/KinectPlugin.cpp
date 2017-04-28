@@ -654,11 +654,6 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // Test print out joint positions and orientations
 
-        
-        std::chrono::milliseconds msec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        QTime test;
-
-
         if (i < prevJoints.size()) {
             // linearVel = (pos - (prevJoints[i].position * METERS_PER_CENTIMETER)) / deltaTime;  // m/s
             linearVel = (pos - (prevJoints[i].position)) / deltaTime;  // m/s       // sensor space is in meters
@@ -667,9 +662,14 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
             angularVel = glm::vec3(d.x, d.y, d.z) / (0.5f * deltaTime); // radians/s
         }
 
-    
+        
+        //std::chrono::milliseconds msec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        QTime currTime = QTime::currentTime();
+
         QString jointName = kinectJointNames[(JointType)i];
-        qDebug() << __FUNCTION__ << "joint[" << i << "]:" << jointName
+       
+        qDebug() << currTime.toString("hh:mm:ss.zzz")
+            << "joint[" << i << "]:" << jointName
             << " position: " << joints[i].position
             << "orientation: " << joints[i].orientation;
 
