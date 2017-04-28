@@ -293,6 +293,11 @@ bool KinectPlugin::initializeDefaultSensor() const {
         return true;
     }
 
+    // Put in a a 20 sec delay - to get in position for the calibration
+
+    Sleep(5000);
+
+    _input._calibrated  = false;
     HRESULT hr;
 
     hr = GetDefaultKinectSensor(&_kinectSensor);
@@ -650,10 +655,8 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
         // Test print out joint positions and orientations
 
         
-        /* QString jointName = kinectJointNames[i];
-        qDebug() << __FUNCTION__ << "joint[" << i << "]:" << jointName
-            << "position:" << joints[i].position
-            << "orientation:" << joints[i].orientation; */
+        std::chrono::milliseconds msec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        QTime test;
 
 
         if (i < prevJoints.size()) {
@@ -664,8 +667,74 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
             angularVel = glm::vec3(d.x, d.y, d.z) / (0.5f * deltaTime); // radians/s
         }
 
-        _poseStateMap[poseIndex] = controller::Pose(pos, rot, linearVel, angularVel);
+    
+        QString jointName = kinectJointNames[(JointType)i];
+        qDebug() << __FUNCTION__ << "joint[" << i << "]:" << jointName
+            << " position: " << joints[i].position
+            << "orientation: " << joints[i].orientation;
+
+
+        //_calibrated = true;
+
+        if (!_calibrated){
+
+            qDebug() << "_calibrated = " << _calibrated;
+            
+            if (_avg_joints.size() == 0){
+                buildAverageJoints();
+            }
+                
+            averageJoints(joints, i);
+           
+ 
+            
+            if (_avg_joints[i].positionAvg.numSamples >= 300){
+
+                // debug output joint averages
+                
+                qDebug() << " Joint Averages";
+
+                for (int j = 0; j < JointType_Count; j++){
+                    QString jointName = kinectJointNames[(JointType)j];
+                    qDebug() << __FUNCTION__ << "joint[" << j << "]:" << jointName
+                    << " average position: " << _avg_joints[j].positionAvg.getAverage()
+                    << "average orientation: " << _avg_joints[j].orientationAvg.getAverage();
+                }
+                deleteAverageJoints();
+                _calibrated = true;
+            }
+        }
+        else {
+            _poseStateMap[poseIndex] = controller::Pose(pos, rot, linearVel, angularVel);
+        }
+
     }
+}
+
+
+void KinectPlugin::InputDevice::averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const int i){
+     
+    _avg_joints[i].positionAvg.addSample(joints[i].position);
+     
+    glm::quat tmpJointOrientation = joints[i].orientation;
+    
+    if (glm::dot(joints[i].orientation, _avg_joints[i].orientationAvg.getAverage()) < 0) {
+        tmpJointOrientation = -tmpJointOrientation;
+    }
+    
+    tmpJointOrientation = glm::normalize(tmpJointOrientation); // use on instance of ThreadSafeMovingAverage<glm::quat, 2>
+    _avg_joints[i].orientationAvg.addSample(tmpJointOrientation);
+
+}
+
+
+void KinectPlugin::InputDevice::buildAverageJoints(){
+    
+    _avg_joints.resize(JointType_Count);
+}
+
+void KinectPlugin::InputDevice::deleteAverageJoints(){
+    _avg_joints.clear();
 }
 
 void KinectPlugin::InputDevice::clearState() {
