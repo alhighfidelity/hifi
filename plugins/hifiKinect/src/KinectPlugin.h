@@ -86,6 +86,7 @@ protected:
         std::vector<KinectJointAvg> _avg_joints;
         mutable bool _calibrated{ false };
         mutable int _AvgSamples{ 0 };
+        mutable std::mutex _lock;
         
 
         InputDevice() : controller::InputDevice("Kinect") {}

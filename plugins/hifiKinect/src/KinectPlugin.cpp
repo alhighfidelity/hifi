@@ -293,7 +293,7 @@ bool KinectPlugin::initializeDefaultSensor() const {
         return true;
     }
 
-    // Put in a a 20 sec delay - to get in position for the calibration
+    // Put in a a 5 sec delay - to get in position for the calibration
 
     Sleep(5000);
 
@@ -648,9 +648,9 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // rotate the hips by 180 degrees
 
-        if ((JointType)i == JointType_SpineBase) {
+        /*if ((JointType)i == JointType_SpineBase) {
             rot = rot * glm::angleAxis(PI, Vectors::UP);
-        }
+        } */
 
         // Test print out joint positions and orientations
 
@@ -686,8 +686,6 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                 
             averageJoints(joints, i);
            
- 
-            
             if (_avg_joints[i].positionAvg.numSamples >= 300){
 
                 // debug output joint averages
@@ -700,6 +698,7 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                     << " average position: " << _avg_joints[j].positionAvg.getAverage()
                     << "average orientation: " << _avg_joints[j].orientationAvg.getAverage();
                 }
+
                 deleteAverageJoints();
                 _calibrated = true;
             }
@@ -714,8 +713,10 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
 void KinectPlugin::InputDevice::averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const int i){
      
+    std::unique_lock<std::mutex> lock(_lock);
+    
     _avg_joints[i].positionAvg.addSample(joints[i].position);
-     
+ 
     glm::quat tmpJointOrientation = joints[i].orientation;
     
     if (glm::dot(joints[i].orientation, _avg_joints[i].orientationAvg.getAverage()) < 0) {
@@ -729,11 +730,12 @@ void KinectPlugin::InputDevice::averageJoints(const std::vector<KinectPlugin::Ki
 
 
 void KinectPlugin::InputDevice::buildAverageJoints(){
-    
+    std::unique_lock<std::mutex> lock(_lock);
     _avg_joints.resize(JointType_Count);
 }
 
 void KinectPlugin::InputDevice::deleteAverageJoints(){
+    std::unique_lock<std::mutex> lock(_lock);
     _avg_joints.clear();
 }
 
