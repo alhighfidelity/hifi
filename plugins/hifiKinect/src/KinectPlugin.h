@@ -59,12 +59,17 @@ public:
     virtual void saveSettings() const override;
     virtual void loadSettings() override;
 
-private:
-    // add variables for moving average
-    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
-    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
-
 protected:
+
+
+    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
+    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
+
+    struct KinectJointAvg {
+
+        GenericMovingAverage<glm::vec3,2> positionAvg;
+        GenericMovingAverage<glm::quat,2> orientationAvg;
+    };
 
     struct KinectJoint {
         glm::vec3 position;
@@ -75,6 +80,14 @@ protected:
     public:
         friend class KinectPlugin;
 
+        // variables for calibaration
+                
+        // averaged joint data for calibration
+        std::vector<KinectJointAvg> _avg_joints;
+        mutable bool _calibrated{ false };
+        mutable int _AvgSamples{ 0 };
+        
+
         InputDevice() : controller::InputDevice("Kinect") {}
 
         // Device functions
@@ -84,7 +97,10 @@ protected:
         virtual void focusOutEvent() override {};
 
         void update(float deltaTime, const controller::InputCalibrationData& inputCalibrationData, 
-                const std::vector<KinectPlugin::KinectJoint>& joints, const std::vector<KinectPlugin::KinectJoint>& prevJoints);
+        const std::vector<KinectPlugin::KinectJoint>& joints, const std::vector<KinectPlugin::KinectJoint>& prevJoints);
+        void averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const int i);
+        void buildAverageJoints();
+        void deleteAverageJoints();
 
         void clearState();
     };
@@ -97,6 +113,7 @@ protected:
     bool _enabled { false };
     bool _debug { false };
     mutable bool _initialized { false };
+    InputDevice _input;
 
     // copy of data directly from the KinectDataReader SDK
     std::vector<KinectJoint> _joints;
