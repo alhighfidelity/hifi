@@ -76,6 +76,12 @@ protected:
         glm::quat orientation;
     };
 
+    struct KinectCalTrans {
+        glm::quat position;
+        glm::quat orientation;
+
+    };
+
     class InputDevice : public controller::InputDevice {
     public:
         friend class KinectPlugin;
@@ -84,9 +90,13 @@ protected:
                 
         // averaged joint data for calibration
         std::vector<KinectJointAvg> _avg_joints;
+        std::vector<KinectCalTrans> _cal_targets;
+        std::vector<KinectCalTrans> _cal_trans;
+        
         mutable bool _calibrated{ false };
         mutable int _AvgSamples{ 0 };
         mutable std::mutex _lock;
+        mutable bool _debug{ false };
         
 
         InputDevice() : controller::InputDevice("Kinect") {}
@@ -102,6 +112,9 @@ protected:
         void averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const int i);
         void buildAverageJoints();
         void deleteAverageJoints();
+        void CalculateCalibration();
+        void CalibrationTargets();
+        void TestTPose(size_t i);
 
         void clearState();
     };
@@ -112,7 +125,6 @@ protected:
     static const char* KINECT_ID_STRING;
 
     bool _enabled { false };
-    bool _debug { false };
     mutable bool _initialized { false };
     InputDevice _input;
 

@@ -115,13 +115,12 @@ static controller::StandardPoseChannel KinectJointIndexToPoseIndexMap[KinectJoin
 
     controller::LEFT_UP_LEG,   // hip socket
     controller::LEFT_LEG,      // knee?
-    controller::LEFT_FOOT,     // ankle?
     UNKNOWN_JOINT,              // ????
-
+    controller::LEFT_FOOT,     // ankle?
     controller::RIGHT_UP_LEG,   // hip socket
     controller::RIGHT_LEG,      // knee?
-    controller::RIGHT_FOOT,     // ankle?
     UNKNOWN_JOINT,              // ????
+    controller::RIGHT_FOOT,     // ankle?
 
     UNKNOWN_JOINT, /* SpineShoulder */
 
@@ -240,9 +239,9 @@ void KinectPlugin::init() {
         preferences->addPreference(preference);
     }
     {
-        auto debugGetter = [this]()->bool { return _debug; };
+        auto debugGetter = [this]()->bool { return _input._debug; };
         auto debugSetter = [this](bool value) {
-            _debug = value;
+            _input._debug = value;
             saveSettings();
         };
         auto preference = new CheckPreference(KINECT_PLUGIN, "Extra Debugging", debugGetter, debugSetter);
@@ -295,9 +294,10 @@ bool KinectPlugin::initializeDefaultSensor() const {
 
     // Put in a a 5 sec delay - to get in position for the calibration
 
-    Sleep(5000);
+    //Sleep(5000);
 
-    _input._calibrated  = false;
+    _input._calibrated  = true;     // set to true to not execute code I'm currently working on
+    _input._debug = false;          // set to false to not
     HRESULT hr;
 
     hr = GetDefaultKinectSensor(&_kinectSensor);
@@ -403,7 +403,7 @@ void KinectPlugin::ProcessBody(INT64 time, int bodyCount, IBody** bodies) {
 
                     if (SUCCEEDED(hr)) {
                         auto jointCount = _countof(joints);
-                        if (_debug) {
+                        if (_input._debug) {
                             qDebug() << __FUNCTION__ << "nBodyCount:" << bodyCount << "body:" << i << "jointCount:" << jointCount;
                         }
                         
@@ -420,7 +420,7 @@ void KinectPlugin::ProcessBody(INT64 time, int bodyCount, IBody** bodies) {
                                                          jointOrientations[j].Orientation.y,
                                                          jointOrientations[j].Orientation.z };
 
-                            if (_debug) {
+                            if (_input._debug) {
                                 QString jointName = kinectJointNames[joints[j].JointType];
                                 qDebug() << __FUNCTION__ << "joint[" << j << "]:" << jointName
                                         << "position:" << jointPosition
@@ -581,7 +581,7 @@ void KinectPlugin::saveSettings() const {
     settings.beginGroup(idString);
     {
         settings.setValue(QString("enabled"), _enabled);
-        settings.setValue(QString("extraDebug"), _debug);
+        settings.setValue(QString("extraDebug"), _input._debug);
     }
     settings.endGroup();
 }
@@ -592,7 +592,7 @@ void KinectPlugin::loadSettings() {
     settings.beginGroup(idString);
     {
         _enabled = settings.value("enabled", QVariant(DEFAULT_ENABLED)).toBool();
-        _debug = settings.value("extraDebug", QVariant(DEFAULT_ENABLED)).toBool();
+        _input._debug = settings.value("extraDebug", QVariant(DEFAULT_ENABLED)).toBool();
     }
     settings.endGroup();
 }
@@ -648,9 +648,9 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
         // rotate the hips by 180 degrees
 
-        /*if ((JointType)i == JointType_SpineBase) {
-            rot = rot * glm::angleAxis(PI, Vectors::UP);
-        } */
+        //if ((JointType)i == JointType_SpineBase) {
+         //   rot = rot * glm::angleAxis(PI, Vectors::UP);
+        //} 
 
         // Test print out joint positions and orientations
 
@@ -663,9 +663,13 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
         }
 
         
-        //std::chrono::milliseconds msec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        QTime currTime = QTime::currentTime();
+        if (_debug){
 
+
+
+
+        }
+        QTime currTime = QTime::currentTime();
         QString jointName = kinectJointNames[(JointType)i];
        
         qDebug() << currTime.toString("hh:mm:ss.zzz")
@@ -698,13 +702,16 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                     << " average position: " << _avg_joints[j].positionAvg.getAverage()
                     << "average orientation: " << _avg_joints[j].orientationAvg.getAverage();
                 }
+                
+
 
                 deleteAverageJoints();
                 _calibrated = true;
             }
         }
         else {
-            _poseStateMap[poseIndex] = controller::Pose(pos, rot, linearVel, angularVel);
+              //TestTPose(i);
+             _poseStateMap[poseIndex] = controller::Pose(pos, rot, linearVel, angularVel);
         }
 
     }
@@ -729,6 +736,49 @@ void KinectPlugin::InputDevice::averageJoints(const std::vector<KinectPlugin::Ki
 }
 
 
+void KinectPlugin::InputDevice::CalibrationTargets(){
+
+    float eps = 0.0f;
+    std::unique_lock<std::mutex> lock(_lock);
+    _cal_targets.resize(JointType_Count);
+
+    for (int i = 0; i < JointType_Count; i++){
+        _cal_targets[i].position = { eps, eps, eps, eps };
+        _cal_targets[i].orientation = { eps, eps, eps, eps };
+    }
+
+    // put targets in from the T Pose here
+
+    for (int i = 0; i < JointType_Count; i++){
+
+        if ((JointType)i == JointType_HandRight){
+            _cal_targets[i].position = {0.0f, -0.8f, 0.4f, 0.0f };
+            _cal_targets[i].orientation = { 0.5f, -0.5f, 0.5f, 0.5f };
+        }
+
+    }
+
+}
+
+
+
+
+void KinectPlugin::InputDevice::CalculateCalibration(){
+    
+    int n = _avg_joints.size();
+
+    for (int i = 0; i < n; i++){
+        glm::vec3 v1 = _avg_joints[i].positionAvg.getAverage();
+        glm::quat q1(0.0, v1.x, v1.y, v1.z);
+
+    
+
+    }
+
+
+
+}
+
 void KinectPlugin::InputDevice::buildAverageJoints(){
     std::unique_lock<std::mutex> lock(_lock);
     _avg_joints.resize(JointType_Count);
@@ -737,6 +787,65 @@ void KinectPlugin::InputDevice::buildAverageJoints(){
 void KinectPlugin::InputDevice::deleteAverageJoints(){
     std::unique_lock<std::mutex> lock(_lock);
     _avg_joints.clear();
+}
+
+void KinectPlugin::InputDevice::TestTPose(size_t i){
+
+    KinectJoint tmpJoint;
+    int poseIndex = KinectJointIndexToPoseIndex((KinectJointIndex)i);
+    glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
+    glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
+
+    if ((JointType)i == JointType_HandRight){
+        tmpJoint.position = { -0.8, 0.4, 0.0 };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI/2, Vectors::UNIT_NEG_Y);
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI / 2, Vectors::UNIT_X);
+        qDebug() << "Right Hand Joint index = " << i;
+        qDebug() << "Right Hand pose index = " << poseIndex;
+        qDebug() << "Orientation = " << tmpJoint.orientation;
+    } else if ((JointType)i == JointType_HandLeft){
+        tmpJoint.position = { 0.8, 0.4, 0.0 };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI / 2, Vectors::UNIT_Y);
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI / 2, Vectors::UNIT_X);
+        qDebug() << "Left Hand Joint index = " << i;
+        qDebug() << "Left Hand pose index = " << poseIndex;
+        qDebug() << "Orientation = " << tmpJoint.orientation;
+    } else if ((JointType)i == JointType_FootRight){
+        tmpJoint.position = { -0.1, -1.0, 0.0 };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI, Vectors::UNIT_NEG_Z);
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI/4, Vectors::UNIT_X);
+        qDebug() << "Right Foot Joint index = " << i;
+        qDebug() << "Right Foot pose index = " << poseIndex;
+        qDebug() << "Orientation = " << tmpJoint.orientation;
+    } else if ((JointType)i == JointType_FootLeft){
+        tmpJoint.position = { 0.1, -1.0, 0.0 };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI, Vectors::UNIT_Z);
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI/4, Vectors::UNIT_X);
+        qDebug() << "Left Foot Joint index = " << i;
+        qDebug() << "Left Foot pose index = " << poseIndex;
+        qDebug() << "Orientation = " << tmpJoint.orientation;
+    } else if ((JointType)i == JointType_SpineBase){
+        tmpJoint.position = { 0.15, 1.0, 1.0 };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        tmpJoint.orientation = tmpJoint.orientation * glm::angleAxis(PI, Vectors::UNIT_X); // rotate by 180 degrees
+        //poseIndex = 20; // do this as an experiment
+        qDebug() << "Spine Base Joint index = " << i;
+        qDebug() << "Spine Base index = " << poseIndex;
+    }
+    else {
+        return;
+    }
+
+
+
+
+    qDebug() << "poseIndex = " << poseIndex << "tmpJoint.position = " << tmpJoint.position << "tmpJoint.orientation = " << tmpJoint.orientation;
+    _poseStateMap[poseIndex] = controller::Pose(tmpJoint.position,tmpJoint.orientation, linearVel, angularVel);
+
 }
 
 void KinectPlugin::InputDevice::clearState() {
