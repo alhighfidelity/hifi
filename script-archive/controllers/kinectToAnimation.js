@@ -85,7 +85,7 @@ function init() {
     Controller.enableMapping(MAPPING_NAME);
 }
 
-init();
+//init();
 Script.scriptEnding.connect(function(){
     MyAvatar.removeAnimationStateHandler(handlerId);
     mapping.disable();

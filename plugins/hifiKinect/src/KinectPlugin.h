@@ -109,12 +109,20 @@ protected:
 
         void update(float deltaTime, const controller::InputCalibrationData& inputCalibrationData, 
         const std::vector<KinectPlugin::KinectJoint>& joints, const std::vector<KinectPlugin::KinectJoint>& prevJoints);
-        void averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const int i);
+        void averageJoints(const std::vector<KinectPlugin::KinectJoint>& joints, const size_t &i);
         void buildAverageJoints();
         void deleteAverageJoints();
-        void CalculateCalibration();
-        void CalibrationTargets();
+        void calculateCalibration();
+        void calculateTransforms(const int &i);
+        void calcCalibrationTargets();
+        void applyTransform(const size_t &i, float deltaTime, const std::vector<KinectPlugin::KinectJoint>& joints,
+            const std::vector<KinectPlugin::KinectJoint>& prevJoints, const controller::InputCalibrationData& inputCalibrationData);
+
+        const glm::vec3  KinectPlugin::InputDevice::applyPos(const size_t &i, const std::vector<KinectPlugin::KinectJoint>& joints);
+        const glm::quat  KinectPlugin::InputDevice::applyRot(const size_t &i, const std::vector<KinectPlugin::KinectJoint>& joints);
         void TestTPose(size_t i);
+        void TestCalibration();
+        bool InJointSet(const size_t &i);
 
         void clearState();
     };
