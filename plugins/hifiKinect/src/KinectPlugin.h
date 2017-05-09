@@ -1,4 +1,3 @@
-//
 //  KinectPlugin.h
 //
 //  Created by Brad Hefta-Gaub on 2016/12/7
@@ -63,21 +62,6 @@ public:
 protected:
 
 
-    struct KinectJointAvg {
-
-        GenericMovingAverage<glm::vec3, 2> positionAvg;
-        GenericMovingAverage<glm::quat, 2> orientationAvg;
-    };
-
-
-    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
-    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
-
-
-    struct KinectJoint {
-        glm::vec3 position;
-        glm::quat orientation;
-    };
 
     struct KinectCalTrans {
         glm::quat position;
@@ -85,12 +69,28 @@ protected:
 
     };
 
+    struct KinectJointAvg {
+
+        GenericMovingAverage<glm::vec3, 2> positionAvg;
+        GenericMovingAverage<glm::quat, 2> orientationAvg;
+    };
+
+    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
+    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
+
+
     struct localBasis {
         glm::vec3 x;
         glm::vec3 y;
         glm::vec3 z;
         glm::vec3 hips;
     };
+
+    struct KinectJoint {
+        glm::vec3 position;
+        glm::quat orientation;
+    };
+
 
     class InputDevice : public controller::InputDevice {
     public:
@@ -102,6 +102,7 @@ protected:
         std::vector<KinectJointAvg> _avg_joints;
         std::vector<KinectCalTrans> _cal_targets;
         std::vector<KinectCalTrans> _cal_trans;
+
         localBasis _localBasis;
         
         mutable bool _calibrated{ false };
@@ -120,13 +121,13 @@ protected:
 
         void update(float deltaTime, const controller::InputCalibrationData& inputCalibrationData, 
         const std::vector<KinectJoint>& joints, const std::vector<KinectJoint>& prevJoints);
-        void KinectPlugin::InputDevice::averageJoints(const KinectJoint &joints, const size_t &i);
+        void averageJoints(const KinectJoint &joints, const size_t &i);
         void buildAverageJoints();
         void deleteAverageJoints();
         void calculateCalibration();
         void calculateTransforms(const int &i);
         void calcCalibrationTargets();
-        void KinectPlugin::InputDevice::applyTransform(const size_t &i, float deltaTime, const KinectJoint &joint,
+        void applyTransform(const size_t &i, float deltaTime, const KinectJoint &joint,
             const KinectJoint &prevJoints, const controller::InputCalibrationData& inputCalibrationData);
 
         const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
@@ -140,7 +141,7 @@ protected:
         void printPoseStateMap(const size_t &i);
         KinectJoint getJointAverage(const size_t &i);
         KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
-        void KinectPlugin::InputDevice::calculatDifferenceAverages();
+        void calculatDifferenceAverages();
         void  setLocalBasis();
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
@@ -164,7 +165,7 @@ protected:
 
     // Kinect SDK related items...
 
-    bool KinectPlugin::initializeDefaultSensor() const;
+    bool initializeDefaultSensor() const;
     void updateBody();
 
 #ifdef HAVE_KINECT
@@ -181,4 +182,3 @@ protected:
 };
 
 #endif // hifi_KinectPlugin_h
-

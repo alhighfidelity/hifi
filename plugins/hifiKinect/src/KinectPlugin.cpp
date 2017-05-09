@@ -1169,4 +1169,3 @@ void KinectPlugin::InputDevice::clearState() {
         _poseStateMap[poseIndex] = controller::Pose();
     }
 }
-
