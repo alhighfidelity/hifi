@@ -105,11 +105,8 @@ Input::NamedVector StandardController::getAvailableInputs() const {
         makePair(LEFT_FOOT, "LeftFoot"),
         makePair(RIGHT_FOOT, "RightFoot"),
         makePair(HIPS, "Hips"),
-<<<<<<< HEAD
         makePair(SPINE2, "Spine2"),
         makePair(HEAD, "Head"),
-=======
->>>>>>> got hips working in world coordinates
 
         // Aliases, PlayStation style names
         makePair(LB, "L1"),

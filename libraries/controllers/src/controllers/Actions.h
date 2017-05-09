@@ -45,12 +45,8 @@ enum class Action {
     LEFT_FOOT,
     RIGHT_FOOT,
     HIPS,
-<<<<<<< HEAD
     SPINE2,
     HEAD,
-=======
->>>>>>> got hips working in world coordinates
-
     LEFT_HAND_CLICK,
     RIGHT_HAND_CLICK,
 
