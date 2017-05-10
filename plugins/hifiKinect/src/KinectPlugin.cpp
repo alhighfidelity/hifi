@@ -692,7 +692,7 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                //test.position = ptmp;
                //test.orientation = otmp;
                KinectJoint tmpJoint = joints[i];
-               //test.position = test.position * glm::angleAxis(PI, Vectors::UNIT_Y);
+               //tmpJoint.position = tmpJoint.position * glm::angleAxis(PI, Vectors::UNIT_Y);
 
                applyTransform(i, deltaTime,tmpJoint, prevJoints[i], inputCalibrationData);
                //_poseStateMap[poseIndex] = controller::Pose(tmpJoint.position, tmpJoint.orientation, linearVel, angularVel);
@@ -900,11 +900,6 @@ void  KinectPlugin::InputDevice::TestCalibration(){
 
         qDebug() << "Input Joint";
         tmpJoint = TestTPose(i);
-        printJoints(tmpJoint, (JointType)i);
-
-        qDebug() << "Average Joint;";
-        tmpJoint.position = _avg_joints[i].positionAvg.getAverage();
-        tmpJoint.orientation = _avg_joints[i].orientationAvg.getAverage();
         printJoints(tmpJoint, (JointType)i);
     }
 
