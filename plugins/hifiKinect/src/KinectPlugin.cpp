@@ -639,20 +639,23 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
             }
                 
 
-            KinectJoint tmpJoint = TestTPose(i);
+            //KinectJoint tmpJoint = joints[i];
+            KinectJoint tmpJoint = TestTPose1(i);
+            qDebug() << __FUNCTION__ << "Point1";
+            printJoints(tmpJoint, (JointType)i);
 
             //tmpJoint = testTranslation(tmpJoint, { 0.0, 0.0, 0.0 });
 
-            //tmpJoint.position = tmpJoint.position * glm::angleAxis(PI / 4, Vectors::UNIT_Y); // rotate by 30 degrees
+            tmpJoint.position = tmpJoint.position * glm::angleAxis(PI, Vectors::UNIT_Y); // rotate by 180
             //qDebug() << "Rotate Joint Positions by 60 deg";
             
             averageJoints(tmpJoint, i);   // changed definition to use single joint
             QString jointName = kinectJointNames[(JointType)i];
 
-            qDebug() << "Num Samples = " << _avg_joints[i].positionAvg.numSamples
+           /* qDebug() << "Num Samples = " << _avg_joints[i].positionAvg.numSamples
                 << " Joint Name = " << jointName
                 << " position = " << joints[i].position
-                << " orientation = " << joints[i].orientation;
+                << " orientation = " << joints[i].orientation; */
 
             if (_avg_joints[i].positionAvg.numSamples >= 500){
 
@@ -682,21 +685,25 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                 //glm::vec3 ptmp = _avg_joints[i].positionAvg.getAverage();
                 //glm::quat otmp = _avg_joints[i].orientationAvg.getAverage(); 
                 
-               KinectJoint test = TestTPose(i);
+                //test.position = ptmp;
+                //test.orientation = otmp;
+
+             
+              
+               //KinectJoint test;
+               //KinectJoint test = joints[i];
+               
                int poseIndex = KinectJointIndexToPoseIndex((KinectJointIndex)i);
+               KinectJoint test = TestTPose1(i);
+               
+               //test = testTranslation(test, { 0.0, 0.0, 0.0 });
                glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
                glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
- 
-               //KinectJoint test;
-               
-               //test.position = ptmp;
-               //test.orientation = otmp;
-               KinectJoint tmpJoint = joints[i];
-               //tmpJoint.position = tmpJoint.position * glm::angleAxis(PI, Vectors::UNIT_Y);
+               //test.position = test.position * glm::angleAxis(PI, Vectors::UNIT_Y);
 
-               applyTransform(i, deltaTime,tmpJoint, prevJoints[i], inputCalibrationData);
-               //_poseStateMap[poseIndex] = controller::Pose(tmpJoint.position, tmpJoint.orientation, linearVel, angularVel);
-                //printPoseStateMap(i);  
+               //applyTransform(i, deltaTime,test, prevJoints[i], inputCalibrationData);
+                _poseStateMap[poseIndex] = controller::Pose(test.position, test.orientation, linearVel, angularVel);
+                printPoseStateMap(i);  
                 //updateLocalBasis();
             }
             /*if (InJointSet(i)){
@@ -874,6 +881,55 @@ KinectPlugin::KinectJoint KinectPlugin::InputDevice::TestTPose(size_t i){
     ret.orientation = tmpJoint.orientation;
     return ret;
 }
+
+
+KinectPlugin::KinectJoint KinectPlugin::InputDevice::TestTPose1(size_t i){
+
+
+    KinectJoint tmpJoint;
+    KinectJoint ret;
+
+    glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
+    glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
+
+    if ((JointType)i == JointType_HandRight){
+        tmpJoint.position = { 0.8f, 0.4f, 0.0f };
+        tmpJoint.orientation = { 0.5f, 0.5f, 0.5f, -0.5f };
+    }
+    else if ((JointType)i == JointType_HandLeft){
+        tmpJoint.position = { -0.8f, 0.4f, 0.0f };
+        tmpJoint.orientation = { 0.5f, 0.5f, -0.5f, 0.5f };
+        //tmpJoint.orientation = { -0.5f, 0.5f, -0.5f, 0.5f };
+    }
+    else if ((JointType)i == JointType_FootRight){
+        tmpJoint.position = { 0.1f, -1.0f, 0.0f };
+        tmpJoint.orientation = { 0.382683f, -0.92388f, 0.0f, 0.0f };
+
+    }
+    else if ((JointType)i == JointType_FootLeft){
+        tmpJoint.position = { -0.1f, -1.0f, 0.0f };
+        tmpJoint.orientation = { -0.382683f, 0.92388f, 0.0f, 0.0f };
+
+    }
+    else if ((JointType)i == JointType_SpineBase){
+        tmpJoint.position = { 0.0f, 0.0f, 0.0f };
+        tmpJoint.orientation = { 0.0f, 0.0f,1.0f, 0.0f };
+    }
+    else {
+        ret.position = { 0.0f, 0.0f, 0.0f };
+        ret.orientation = { 0.0f, 0.0f, 0.0f, 0.0f };
+        return ret;
+    }
+
+    glm::vec3 test;
+
+    ret.position = tmpJoint.position;
+    ret.orientation = tmpJoint.orientation;
+    return ret;
+}
+
+
+
 
 
 void  KinectPlugin::InputDevice::TestCalibration(){

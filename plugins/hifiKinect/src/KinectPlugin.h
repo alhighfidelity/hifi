@@ -133,6 +133,7 @@ protected:
         const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
         const glm::quat  applyRot(const size_t &i, const KinectJoint & joint);
         KinectJoint TestTPose(size_t i);
+        KinectJoint TestTPose1(size_t i);
         void TestCalibration();
         bool InJointSet(const size_t &i);
         void printJoints(const KinectJoint &joint, const JointType &jointType);
