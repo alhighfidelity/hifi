@@ -103,6 +103,13 @@ protected:
         std::vector<KinectCalTrans> _cal_targets;
         std::vector<KinectCalTrans> _cal_trans;
 
+        // copy of data directly from the KinectDataReader SDK
+        std::vector<KinectJoint> _joints;
+
+        // one frame old copy of _joints, used to caluclate angular and linear velocity.
+        std::vector<KinectJoint> _prevJoints;
+
+
         localBasis _localBasis;
         
         mutable bool _calibrated{ false };
@@ -136,8 +143,8 @@ protected:
         KinectJoint TestTPose1(size_t i);
         void TestCalibration();
         bool InJointSet(const size_t &i);
-        void printJoints(const KinectJoint &joint, const JointType &jointType);
-        void printJoints(const Joint &joint, const JointType &jointType, glm::vec3 jointPosition, glm::quat jointOrientation);
+        void printJoint(const KinectJoint &joint, const JointType &jointType);
+        void printJoint(const Joint &joint, const JointType &jointType, glm::vec3 jointPosition, glm::quat jointOrientation);
         void printJointAvg();
         void printPoseStateMap(const size_t &i);
         KinectJoint getJointAverage(const size_t &i);
@@ -157,13 +164,6 @@ protected:
     mutable bool _initialized { false };
     InputDevice _input;
    
-    // copy of data directly from the KinectDataReader SDK
-    std::vector<KinectJoint> _joints;
-
-    // one frame old copy of _joints, used to caluclate angular and linear velocity.
-    std::vector<KinectJoint> _prevJoints;
-
-
     // Kinect SDK related items...
 
     bool initializeDefaultSensor() const;
