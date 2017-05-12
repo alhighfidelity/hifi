@@ -152,6 +152,7 @@ protected:
         void printPoseStateMap(const size_t &i);
         KinectJoint getJointAverage(const size_t &i);
         KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
+        glm::vec3 testRotation(glm::quat q, glm::vec3 v);
         void translationCalibrate();
         void  setLocalBasis();
         void updateLocalBasis();
