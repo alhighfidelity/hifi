@@ -116,6 +116,8 @@ protected:
         mutable int _AvgSamples{ 0 };
         mutable std::mutex _lock;
         mutable bool _debug{ false };
+        glm::vec3 _transAdj = { 0.0, 0.0, 0.0 };
+
         
 
         InputDevice() : controller::InputDevice("Kinect") {}
@@ -146,10 +148,11 @@ protected:
         void printJoint(const KinectJoint &joint, const JointType &jointType);
         void printJoint(const Joint &joint, const JointType &jointType, glm::vec3 jointPosition, glm::quat jointOrientation);
         void printJointAvg();
+        void printJointCalTargets();
         void printPoseStateMap(const size_t &i);
         KinectJoint getJointAverage(const size_t &i);
         KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
-        void calculatDifferenceAverages();
+        void translationCalibrate();
         void  setLocalBasis();
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
