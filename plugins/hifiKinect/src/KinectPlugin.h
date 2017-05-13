@@ -100,7 +100,7 @@ protected:
         
         // averaged joint data for calibration
         std::vector<KinectJointAvg> _avg_joints;
-        std::vector<KinectCalTrans> _cal_targets;
+        std::vector<KinectJoint> _cal_targets;
         std::vector<KinectCalTrans> _cal_trans;
 
         // copy of data directly from the KinectDataReader SDK
