@@ -698,7 +698,7 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
             if (InJointSet(i)){
 
             /*   KinectJoint test = TestTPose1(i);
-               if((JointType)i == JointType_FootRight){
+               if((JointType)i == JointType_HandRight){
                    float angle = PI / 6;
                    glm::quat qtmp = { cos(angle), 0.0, 0.0, sin(angle) }; // PI/3 around z axis
                    glm::normalize(qtmp);
@@ -990,14 +990,16 @@ void KinectPlugin::InputDevice::applyTransform(const size_t &i, float deltaTime,
         // transform orientation 
 
         glm::quat rot = applyRot(i, joint);
+        
+       // rot = alignOrientation(pos, rot,(JointType)i);
 
         // convert to avatar coordinates
 
         glm::mat4 controllerToAvatar = glm::inverse(inputCalibrationData.avatarMat) * inputCalibrationData.sensorToWorldMat;
         glm::quat controllerToAvatarRotation = glmExtractRotation(controllerToAvatar);
 
-        //const glm::vec3 pos_offset(0.0, 0.0, 1.5);              // set a room offset to a z of 1.5 m to allow forward and backward motion
-        glm::vec3 pos_offset = { 0.0, 0.0, 0.0 };
+        const glm::vec3 pos_offset(0.0, 0.0, 1.5);              // set a room offset to a z of 1.5 m to allow forward and backward motion
+        //glm::vec3 pos_offset = { 0.0, 0.0, 0.0 };
         pos = controllerToAvatarRotation * (pos - pos_offset);            // leave in sensor coordinate space
 
         rot = controllerToAvatarRotation * rot;
@@ -1007,14 +1009,12 @@ void KinectPlugin::InputDevice::applyTransform(const size_t &i, float deltaTime,
 
         // transform previous position
 
-        //glm::vec3 prevPos = applyPos(i, prevJoints);
-        glm::vec3 prevPos = { 0.0, 0.0, 0.0 };
-
+        glm::vec3 prevPos = applyPos(i, prevJoints);
+        
         // transform previous orientation
 
-        //glm::quat prevRot = applyRot(i, prevJoints);
-        glm::quat prevRot{ 0.0, 0.0, 0.0, 0.0 };
-
+        glm::quat prevRot = applyRot(i, prevJoints);
+        
         // calculate linear and angular velocity
 
         linearVel = (pos - prevPos) / deltaTime;  // m/s       // sensor space is in meters
@@ -1043,6 +1043,11 @@ bool  KinectPlugin::InputDevice::InJointSet(const size_t &i){
     }
 
     ret = ((JointType)i == JointType_HandRight);
+    if (ret) {
+        return ret;
+    }
+
+    ret = ((JointType)i == JointType_WristRight);
     if (ret) {
         return ret;
     }
@@ -1088,16 +1093,44 @@ const glm::quat  KinectPlugin::InputDevice::applyRot(const size_t &i, const Kine
     glm::quat q4 = joint.orientation;
     glm::quat q5 = _cal_trans[i].orientation;
 
-    //if (glm::dot(q4,_avg_joints[i].orientationAvg.getAverage()) < 0) {
-    //    q4 = -q4; // see how this is working with real data
-   // }
-
     glm::quat qO = q4*q5;
+
     ret = qO;
 
     return ret;
 }
 
+
+glm::quat  KinectPlugin::InputDevice::alignOrientation(const glm::vec3 &pos, const glm::quat &rot, const JointType jType){
+
+    // rotate the quaternion to be along the bone
+
+    if (jType == JointType_SpineBase) {
+        return rot;
+    }
+
+    qDebug() << "alignOrientation" << " jType = " << jType;
+
+    if (jType == JointType_HandRight){
+
+        float cosAngle = rot.w;
+        float angle = 2.0f*acos(cosAngle);
+        glm::vec3 tmpPos;
+        if (glm::dot(pos, pos) != 0.0) {
+            tmpPos = glm::normalize(pos);
+        }
+        tmpPos = tmpPos*sin(angle / 2.0f);
+        glm::quat ret = { rot.w, tmpPos.x, tmpPos.y, tmpPos.z };
+        ret = glm::normalize(ret);
+
+        qDebug() << __FUNCTION__ << "pos = " << pos;
+        qDebug() << " ret = " << ret;
+
+        return ret;
+    }
+
+    return rot;
+}
 
 void KinectPlugin::InputDevice::translationCalibrate(){
 
@@ -1250,7 +1283,6 @@ glm::vec3 KinectPlugin::InputDevice::testRotation(glm::quat q, glm::vec3 v){
 
     return ret;
 }
-
 
 
 void KinectPlugin::InputDevice::clearState() {

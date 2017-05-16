@@ -154,6 +154,7 @@ protected:
         KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
         glm::vec3 testRotation(glm::quat q, glm::vec3 v);
         void translationCalibrate();
+        glm::quat alignOrientation(const glm::vec3 &pos, const glm::quat &rot, const JointType jType);
         void  setLocalBasis();
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
