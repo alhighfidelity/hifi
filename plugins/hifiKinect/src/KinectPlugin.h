@@ -134,13 +134,15 @@ protected:
         void buildAverageJoints();
         void deleteAverageJoints();
         void calculateCalibration();
-        void calculateTransforms(const int &i);
+        void calculateTransforms(const size_t &i);
+        void calculateOrientations(const size_t &i);
+        glm::quat calculatePoseOrientation(const glm::vec3 &v1, const glm::vec3 &v2);
         void calcCalibrationTargets();
         void applyTransform(const size_t &i, float deltaTime, const KinectJoint &joint,
             const KinectJoint &prevJoints, const controller::InputCalibrationData& inputCalibrationData);
 
         const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
-        const glm::quat  applyRot(const size_t &i, const KinectJoint & joint);
+        const glm::quat  applyRot(const size_t &i, const glm::quat &rot);
         KinectJoint TestTPose(size_t i);
         KinectJoint TestTPose1(size_t i);
         void TestCalibration();
@@ -154,7 +156,7 @@ protected:
         KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
         glm::vec3 testRotation(glm::quat q, glm::vec3 v);
         void translationCalibrate();
-        glm::quat alignOrientation(const glm::vec3 &pos, const glm::quat &rot, const JointType jType);
+        glm::quat alignOrientation(const KinectJoint &joint, const JointType jType);
         void  setLocalBasis();
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
