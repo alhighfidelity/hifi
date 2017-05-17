@@ -641,9 +641,9 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                 buildAverageJoints();
             }
                 
-            KinectJoint tmpJoint = joints[i];
+            //KinectJoint tmpJoint = joints[i];
             
-            //KinectJoint tmpJoint = TestTPose1(i);
+            KinectJoint tmpJoint = TestTPose1(i);
             
            /* if ((JointType)i == JointType_HandLeft){
                 float angle = PI / 6;
@@ -657,10 +657,10 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
             //tmpJoint = testTranslation(tmpJoint, { 0.0f, 0.0f, 2.0f });
 
-            bool flag = InJointSet(i);
-            if (flag) {
+            //bool flag = InJointSet(i);
+            //if (flag) {
                 averageJoints(tmpJoint, i);   // changed definition to use single joint
-            }
+            //}
          
             if (_avg_joints[i].positionAvg.numSamples >= 500){
 
@@ -687,7 +687,7 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                     qDebug() << "Test Calibration";
 
                     TestCalibration();
-                     deleteAverageJoints();
+                    //deleteAverageJoints();
                     _calibrated = true;
                 }
             }
@@ -697,8 +697,34 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
             if (InJointSet(i)){
 
-            /*   KinectJoint test = TestTPose1(i);
-               if((JointType)i == JointType_HandRight){
+               KinectJoint test = TestTPose1(i);
+
+               if ((JointType)i == JointType_HandRight){
+                   glm::vec3 vElbow = { 0.48f, 0.4f, 0.0f };
+                   vElbow = vElbow * glm::angleAxis(PI / 6, Vectors::UNIT_Z);
+                   glm::vec3 vT = test.position;
+                   vT = vT * glm::angleAxis(PI / 6, Vectors::UNIT_Z);
+                   glm::vec3 vAxis = vT - vElbow;
+                   vAxis = glm::normalize(vAxis);
+                   glm::quat qT = { 0.0f, vAxis.x, vAxis.y, vAxis.z };
+                   qT = glm::normalize(qT);
+                   glm::vec3 vAxis1 = glm::cross(vT, vElbow);
+                   vAxis1 = glm::normalize(vAxis1);
+                   qDebug() << "vAxis1 = " << vAxis1;
+                   qT = qT * glm::angleAxis(-PI / 2, vAxis);
+                   qT = qT * glm::angleAxis(-PI / 2, vAxis1);
+                   test.position = vT;
+                   test.orientation = qT;
+
+               } 
+
+               /*if ((JointType)i == JointType_SpineBase){
+                   qDebug() << " Spine Base"
+                       << "position = " << test.position
+                       << " orientation = " << test.orientation
+                       << " orientation test: w = " << test.orientation.w << " x = " << test.orientation.x << " y = " << test.orientation.y << " z = " << test.orientation.z;
+               }
+               /*if((JointType)i == JointType_HandRight){
                    float angle = PI / 6;
                    glm::quat qtmp = { cos(angle), 0.0, 0.0, sin(angle) }; // PI/3 around z axis
                    glm::normalize(qtmp);
@@ -706,17 +732,17 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                    qDebug() << "Test Position = " << test.position;
                } */   
             
-                KinectJoint test = joints[i];
+                //KinectJoint test = joints[i];
 
                //test = testTranslation(test, { 0.0, 0.0, 0.0 });
-               //glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
-               //glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
+               glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
+               glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
                
-               applyTransform(i, deltaTime,test, prevJoints[i], inputCalibrationData);
+               //applyTransform(i, deltaTime,test, prevJoints[i], inputCalibrationData);
                 
-                //int poseIndex = KinectJointIndexToPoseIndex((KinectJointIndex)i);
-                //_poseStateMap[poseIndex] = controller::Pose(test.position, test.orientation, linearVel, angularVel);
-                // printPoseStateMap(i);
+                int poseIndex = KinectJointIndexToPoseIndex((KinectJointIndex)i);
+                _poseStateMap[poseIndex] = controller::Pose(test.position, test.orientation, linearVel, angularVel);
+                printPoseStateMap(i);
                 //updateLocalBasis();
             } 
         }
@@ -776,6 +802,7 @@ void KinectPlugin::InputDevice::calcCalibrationTargets(){
         if ((JointType)i == JointType_HandRight){
             _cal_targets[i].position = { 0.8f, 0.4f, 0.0f };
             _cal_targets[i].orientation = { 0.5f, 0.5f, 0.5f, -0.5f };
+            //_cal_targets[i].orientation = { , 0.0,1.0f, 0.0f };
         }
 
         if ((JointType)i == JointType_HandLeft){
@@ -815,6 +842,17 @@ void KinectPlugin::InputDevice::calculateTransforms(const int &i){
         glm::quat pos = rotationBetween(vin, vT);
         _cal_trans[i].position = glm::normalize(pos);
     }
+
+    //::vec3 vCenter = { 0.0f, 0.4f, 0.0 };
+    //glm::vec3 vAxis = vT - vCenter;
+    //vAxis = glm::normalize(vAxis);
+    //glm::quat qT = {0.0f, vAxis.x, vAxis.y,vAxis.z};
+
+
+
+
+
+
 }
 
 void KinectPlugin::InputDevice::calculateCalibration(){
@@ -851,7 +889,8 @@ KinectPlugin::KinectJoint KinectPlugin::InputDevice::TestTPose(size_t i){
 
     if ((JointType)i == JointType_HandRight){
         tmpJoint.position = { -0.8f, 0.4f, 0.0f };
-        tmpJoint.orientation = { -0.5f, -0.5f, -0.5f, 0.5f };
+        //tmpJoint.orientation = { -0.5f, -0.5f, -0.5f, 0.5f };
+        tmpJoint.orientation = { 1.0f, 0.0f, 0.0f, 0.0f };
         
        
     } else if ((JointType)i == JointType_HandLeft){
@@ -896,11 +935,17 @@ KinectPlugin::KinectJoint KinectPlugin::InputDevice::TestTPose1(size_t i){
     KinectJoint ret;
 
     glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
+
     glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
 
     if ((JointType)i == JointType_HandRight){
         tmpJoint.position = { 0.8f, 0.4f, 0.0f };
-        tmpJoint.orientation = { 0.5f, 0.5f, 0.5f, -0.5f };
+        tmpJoint.orientation = { 1.0, 0.0, 0.0, 0.0 };
+        //tmpJoint.orientation = { 0.5f, 0.5f, 0.5f, -0.5f };
+    } 
+    else if ((JointType)i == JointType_ElbowRight){
+        tmpJoint.position = { 0.48f, 0.4f, 0.0f };
+        tmpJoint.orientation = { 1.0f, 0.0f, 0.0f, 0.0f };
     }
     else if ((JointType)i == JointType_HandLeft){
         tmpJoint.position = { -0.8f, 0.4f, 0.0f };
@@ -909,12 +954,10 @@ KinectPlugin::KinectJoint KinectPlugin::InputDevice::TestTPose1(size_t i){
     else if ((JointType)i == JointType_FootRight){
         tmpJoint.position = { 0.1f, -1.0f, 0.0f };
         tmpJoint.orientation = { 0.382683f, -0.92388f, 0.0f, 0.0f };
-
     }
     else if ((JointType)i == JointType_FootLeft){
         tmpJoint.position = { -0.1f, -1.0f, 0.0f };
         tmpJoint.orientation = { -0.382683f, 0.92388f, 0.0f, 0.0f };
-
     }
     else if ((JointType)i == JointType_SpineBase){
         tmpJoint.position = { 0.0f, 0.0f, 0.0f };
@@ -1047,27 +1090,41 @@ bool  KinectPlugin::InputDevice::InJointSet(const size_t &i){
         return ret;
     }
 
-    ret = ((JointType)i == JointType_WristRight);
+    ret = ((JointType)i == JointType_ElbowRight);
     if (ret) {
         return ret;
-    }
+    } 
 
     ret = ((JointType)i == JointType_HandLeft);
     if (ret) {
         return ret;
     }
 
+  /*  ret = ((JointType)i == JointType_ElbowLeft);
+    if (ret) {
+        return ret;
+    } */
+
     ret = ((JointType)i == JointType_FootRight);
     if (ret) {
         return ret;
     }
 
+   /* ret = ((JointType)i == JointType_AnkleRight);
+    if (ret) {
+        return ret;
+    } */
 
     ret = ((JointType)i == JointType_FootLeft);
     if (ret) {
         return ret;
     }
   
+   /* ret = ((JointType)i == JointType_AnkleLeft);
+    if (ret) {
+        return ret;
+    } */
+
     ret = ((JointType)i == JointType_SpineBase);
     if (ret) {
         return ret;
