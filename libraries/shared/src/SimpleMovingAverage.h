@@ -17,6 +17,7 @@
 #include <mutex>
 #include <stdint.h>
 #include <atomic>
+ 
 
 class SimpleMovingAverage {
 public:
@@ -62,7 +63,7 @@ public:
     const float ONE_MINUS_WEIGHTING = 1.0f - WEIGHTING;
     std::atomic<int> numSamples{ 0 };
     std::atomic<T> average;
-
+   
     void clear() {
         numSamples = 0;
     }
@@ -77,7 +78,58 @@ public:
         }
         numSamples++;
     }
+
 };
+
+
+template <class T, int  MAX_NUM_SAMPLES > class GenericMovingAverage{
+
+public:
+    GenericMovingAverage<T, MAX_NUM_SAMPLES>() {}
+    GenericMovingAverage<T, MAX_NUM_SAMPLES>(const GenericMovingAverage<T, MAX_NUM_SAMPLES>& other) {
+        *this = other;
+    }
+    GenericMovingAverage<T, MAX_NUM_SAMPLES>& operator=(const GenericMovingAverage<T, MAX_NUM_SAMPLES>& other) {
+        numSamples = (int)other.numSamples;
+        average = (T)other.average;
+        return *this;
+    }
+
+    const float WEIGHTING = 1.0f / (float)MAX_NUM_SAMPLES;
+    const float ONE_MINUS_WEIGHTING = 1.0f - WEIGHTING;
+    std::atomic<int> numSamples{ 0 };
+    T average;
+
+    void clear() {
+        numSamples = 0;
+    }
+
+    bool isAverageValid() const { return (numSamples > 0); }
+
+    void addSample(T sample) {
+
+        //qDebug() << __FUNCTION__ << " sample = " << sample;
+
+        if (numSamples > 0) {
+            average = (sample * WEIGHTING) + (average * ONE_MINUS_WEIGHTING);
+        }
+        else {
+            average = sample;
+        }
+        numSamples++;
+        //qDebug() << __FUNCTION__ << "average  = " << average;
+    }
+
+
+    T getAverage(){
+        return average;
+    }
+
+
+};
+
+
+
 
 template <class T, int MAX_NUM_SAMPLES> class ThreadSafeMovingAverage {
 public:

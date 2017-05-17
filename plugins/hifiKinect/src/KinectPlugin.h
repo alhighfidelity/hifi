@@ -1,4 +1,3 @@
-//
 //  KinectPlugin.h
 //
 //  Created by Brad Hefta-Gaub on 2016/12/7
@@ -38,6 +37,7 @@ template<class Interface> inline void SafeRelease(Interface *& pInterfaceToRelea
 #include <controllers/StandardControls.h>
 #include <plugins/InputPlugin.h>
 
+ 
 // Handles interaction with the Kinect SDK
 class KinectPlugin : public InputPlugin {
     Q_OBJECT
@@ -59,21 +59,66 @@ public:
     virtual void saveSettings() const override;
     virtual void loadSettings() override;
 
-private:
-    // add variables for moving average
-    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
-    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
-
 protected:
+
+
+
+    struct KinectCalTrans {
+        glm::quat position;
+        glm::quat orientation;
+
+    };
+
+    struct KinectJointAvg {
+
+        GenericMovingAverage<glm::vec3, 2> positionAvg;
+        GenericMovingAverage<glm::quat, 2> orientationAvg;
+    };
+
+    ThreadSafeMovingAverage<glm::quat, 2> _RightHandOrientationAverage;
+    ThreadSafeMovingAverage<glm::quat, 2> _LeftHandOrientationAverage;
+
+
+    struct localBasis {
+        glm::vec3 x;
+        glm::vec3 y;
+        glm::vec3 z;
+        glm::vec3 hips;
+    };
 
     struct KinectJoint {
         glm::vec3 position;
         glm::quat orientation;
     };
 
+
     class InputDevice : public controller::InputDevice {
     public:
         friend class KinectPlugin;
+
+        // variables for calibaration
+        
+        // averaged joint data for calibration
+        std::vector<KinectJointAvg> _avg_joints;
+        std::vector<KinectJoint> _cal_targets;
+        std::vector<KinectCalTrans> _cal_trans;
+
+        // copy of data directly from the KinectDataReader SDK
+        std::vector<KinectJoint> _joints;
+
+        // one frame old copy of _joints, used to caluclate angular and linear velocity.
+        std::vector<KinectJoint> _prevJoints;
+
+
+        localBasis _localBasis;
+        
+        mutable bool _calibrated{ false };
+        mutable int _AvgSamples{ 0 };
+        mutable std::mutex _lock;
+        mutable bool _debug{ false };
+        glm::vec3 _transAdj = { 0.0, 0.0, 0.0 };
+
+        
 
         InputDevice() : controller::InputDevice("Kinect") {}
 
@@ -84,30 +129,51 @@ protected:
         virtual void focusOutEvent() override {};
 
         void update(float deltaTime, const controller::InputCalibrationData& inputCalibrationData, 
-                const std::vector<KinectPlugin::KinectJoint>& joints, const std::vector<KinectPlugin::KinectJoint>& prevJoints);
+        const std::vector<KinectJoint>& joints, const std::vector<KinectJoint>& prevJoints);
+        void averageJoints(const KinectJoint &joints, const size_t &i);
+        void buildAverageJoints();
+        void deleteAverageJoints();
+        void calculateCalibration();
+        void calculateTransforms(const size_t &i);
+        void calculateOrientations(const size_t &i);
+        glm::quat calculatePoseOrientation(const glm::vec3 &v1, const glm::vec3 &v2);
+        void calcCalibrationTargets();
+        void applyTransform(const size_t &i, float deltaTime, const KinectJoint &joint,
+            const KinectJoint &prevJoints, const controller::InputCalibrationData& inputCalibrationData);
 
+        const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
+        const glm::quat  applyRot(const size_t &i, const glm::quat &rot);
+        KinectJoint TestTPose(size_t i);
+        KinectJoint TestTPose1(size_t i);
+        void TestCalibration();
+        bool InJointSet(const size_t &i);
+        void printJoint(const KinectJoint &joint, const JointType &jointType);
+        void printJoint(const Joint &joint, const JointType &jointType, glm::vec3 jointPosition, glm::quat jointOrientation);
+        void printJointAvg();
+        void printJointCalTargets();
+        void printPoseStateMap(const size_t &i);
+        KinectJoint getJointAverage(const size_t &i);
+        KinectJoint testTranslation(const KinectJoint &joint, glm::vec3 deltaV);
+        glm::vec3 testRotation(glm::quat q, glm::vec3 v);
+        void translationCalibrate();
+        glm::quat alignOrientation(const KinectJoint &joint, const JointType jType);
+        void  setLocalBasis();
+        void updateLocalBasis();
+        glm::vec3 transformLocalBasis(glm::vec3 pos);
         void clearState();
     };
 
     std::shared_ptr<InputDevice> _inputDevice { std::make_shared<InputDevice>() };
-
     static const char* NAME;
     static const char* KINECT_ID_STRING;
 
     bool _enabled { false };
-    bool _debug { false };
     mutable bool _initialized { false };
-
-    // copy of data directly from the KinectDataReader SDK
-    std::vector<KinectJoint> _joints;
-
-    // one frame old copy of _joints, used to caluclate angular and linear velocity.
-    std::vector<KinectJoint> _prevJoints;
-
-
+    InputDevice _input;
+   
     // Kinect SDK related items...
 
-    bool KinectPlugin::initializeDefaultSensor() const;
+    bool initializeDefaultSensor() const;
     void updateBody();
 
 #ifdef HAVE_KINECT
@@ -124,4 +190,3 @@ protected:
 };
 
 #endif // hifi_KinectPlugin_h
-
