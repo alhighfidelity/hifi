@@ -101,7 +101,7 @@ protected:
         // averaged joint data for calibration
         std::vector<KinectJointAvg> _avg_joints;
         std::vector<KinectJoint> _cal_targets;
-        std::vector<KinectCalTrans> _cal_trans;
+        std::vector<glm::mat4> _cal_trans;
 
         // copy of data directly from the KinectDataReader SDK
         std::vector<KinectJoint> _joints;
@@ -140,9 +140,9 @@ protected:
         void calcCalibrationTargets();
         void applyTransform(const size_t &i, float deltaTime, const KinectJoint &joint,
             const KinectJoint &prevJoints, const controller::InputCalibrationData& inputCalibrationData);
-
-        const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
-        const glm::quat  applyRot(const size_t &i, const glm::quat &rot);
+        void calibrate(const controller::InputCalibrationData &inputCalibration);
+        //const glm::vec3  applyPos(const size_t &i, const KinectJoint & joint);
+        //const glm::quat  applyRot(const size_t &i, const glm::quat &rot);
         KinectJoint TestTPose(size_t i);
         KinectJoint TestTPose1(size_t i);
         void TestCalibration();
@@ -161,6 +161,7 @@ protected:
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
         void clearState();
+        glm::mat4 computeOffset(glm::mat4 defaultToReferenceMat, glm::mat4 defaultJointMat, glm::vec3 jointPos, glm::quat jointRot);
     };
 
     std::shared_ptr<InputDevice> _inputDevice { std::make_shared<InputDevice>() };
