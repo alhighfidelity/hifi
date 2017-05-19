@@ -132,6 +132,7 @@ protected:
         const std::vector<KinectJoint>& joints, const std::vector<KinectJoint>& prevJoints);
         void averageJoints(const KinectJoint &joints, const size_t &i);
         void buildAverageJoints();
+        void buildCalVector();
         void deleteAverageJoints();
         void calculateCalibration();
         void calculateTransforms(const size_t &i);
@@ -145,7 +146,9 @@ protected:
         //const glm::quat  applyRot(const size_t &i, const glm::quat &rot);
         KinectJoint TestTPose(size_t i);
         KinectJoint TestTPose1(size_t i);
+        KinectJoint TestDefaultPose(const size_t &i, const controller::InputCalibrationData &inputCalibration);
         void TestCalibration();
+        bool InAvJointSet(const size_t &i);
         bool InJointSet(const size_t &i);
         void printJoint(const KinectJoint &joint, const JointType &jointType);
         void printJoint(const Joint &joint, const JointType &jointType, glm::vec3 jointPosition, glm::quat jointOrientation);
