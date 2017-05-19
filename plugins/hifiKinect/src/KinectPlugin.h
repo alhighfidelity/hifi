@@ -161,7 +161,7 @@ protected:
         void updateLocalBasis();
         glm::vec3 transformLocalBasis(glm::vec3 pos);
         void clearState();
-        glm::mat4 computeOffset(glm::mat4 defaultToReferenceMat, glm::mat4 defaultJointMat, glm::vec3 jointPos, glm::quat jointRot);
+        glm::mat4 computeOffset(glm::mat4 defaultToReferenceMat, glm::mat4 defaultJointMat, glm::mat4 sensorToAvatar, glm::vec3 jointPos, glm::quat jointRot);
     };
 
     std::shared_ptr<InputDevice> _inputDevice { std::make_shared<InputDevice>() };

@@ -21,6 +21,7 @@
 #include <Preferences.h>
 #include <SettingHandle.h>
 #include <QTime>
+#include <glm/gtx/string_cast.hpp>
 
 Q_DECLARE_LOGGING_CATEGORY(inputplugins)
 Q_LOGGING_CATEGORY(inputplugins, "hifi.inputplugins")
@@ -627,18 +628,10 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
     for (size_t i = 0; i < joints.size(); i++) {
 
-        /*qDebug() << "InputCalibrationData = "
-            << "defaultHeadMat = " << inputCalibrationData.defaultHeadMat
-            << "avatarMat = " << inputCalibrationData.avatarMat
-            << "default hips = " << inputCalibrationData.defaultHips
-            << "left foot = " << inputCalibrationData.defaultLeftFoot
-            << " right foot = " << inputCalibrationData.defaultRightFoot; */
 
-
-        // if (_debug){
+// if (_debug){
         //     printJoint(joints[i], (JointType)i);
-        // }
-
+        // }applyT
         if (!_calibrated){
 
             //qDebug() << "_calibrated = " << _calibrated;
@@ -689,8 +682,14 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
                     } */
 
                 KinectJoint test = joints[i];
+               
+                glm::mat4 sensorToAvatarMat = glm::inverse(inputCalibrationData.avatarMat) * inputCalibrationData.sensorToWorldMat;
+                glm::mat4 jointMat = createMatFromQuatAndPos(test.orientation, test.position);
+                jointMat = sensorToAvatarMat*jointMat;
 
-                //test = testTranslation(test, { 0.0, 0.0, 0.0 });
+                test.position = extractTranslation(jointMat);
+                test.orientation = glmExtractRotation(jointMat);
+
                 glm::vec3 linearVel = { 0.0, 0.0, 0.0 };
                 glm::vec3 angularVel = { 0.0, 0.0, 0.0 };
 
@@ -707,6 +706,16 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
 
 void KinectPlugin::InputDevice::calibrate(const controller::InputCalibrationData &inputCalibration){
 
+
+
+    QString defaultHeadMat = QString::fromStdString(glm::to_string(inputCalibration.defaultHeadMat));
+    qDebug() << "InputCalibrationData = " 
+        << "defaultHeadMat = " << defaultHeadMat
+        << "avatarMat = " << inputCalibration.avatarMat
+        << "default hips = " << inputCalibration.defaultHips
+        << "left foot = " << inputCalibration.defaultLeftFoot
+        << " right foot = " << inputCalibration.defaultRightFoot; 
+
     if (_cal_trans.size() != JointType_Count) {
         _cal_trans.resize(JointType_Count);
     }
@@ -715,6 +724,14 @@ void KinectPlugin::InputDevice::calibrate(const controller::InputCalibrationData
 
     glm::vec3 pos = _avg_joints[JointType_Head].positionAvg.getAverage();
     glm::quat rot = _avg_joints[JointType_Head].orientationAvg.getAverage();
+
+    // Test print to vec3 and quat 
+
+    QString Qpos = QString::fromStdString(glm::to_string(pos));
+    QString Qrot = QString::fromStdString(glm::to_string(rot));
+
+    qDebug() << "Qpos = " << Qpos;
+    qDebug() << "Qrot = " << Qrot;
 
     glm::mat4 head = createMatFromQuatAndPos(rot, pos);
 
@@ -740,28 +757,30 @@ void KinectPlugin::InputDevice::calibrate(const controller::InputCalibrationData
     pos = _avg_joints[JointType_FootLeft].positionAvg.getAverage();
     rot = _avg_joints[JointType_FootLeft].orientationAvg.getAverage();
 
-    _cal_trans[JointType_FootLeft] = computeOffset(defaultToReferenceMat, inputCalibration.defaultLeftFoot, pos, rot);
+    _cal_trans[JointType_FootLeft] = computeOffset(defaultToReferenceMat, inputCalibration.defaultLeftFoot, sensorToAvatarMat, pos, rot);
 
     pos = _avg_joints[JointType_FootRight].positionAvg.getAverage();
     rot = _avg_joints[JointType_FootRight].orientationAvg.getAverage();
 
-    _cal_trans[JointType_FootRight] = computeOffset(defaultToReferenceMat, inputCalibration.defaultRightFoot, pos, rot);
+    _cal_trans[JointType_FootRight] = computeOffset(defaultToReferenceMat, inputCalibration.defaultRightFoot, sensorToAvatarMat, pos, rot);
 
     pos = _avg_joints[JointType_SpineBase].positionAvg.getAverage();
     rot = _avg_joints[JointType_SpineBase].orientationAvg.getAverage();
 
-    _cal_trans[JointType_SpineBase] = computeOffset(defaultToReferenceMat, inputCalibration.defaultHips, pos, rot);
+    _cal_trans[JointType_SpineBase] = computeOffset(defaultToReferenceMat, inputCalibration.defaultHips, sensorToAvatarMat, pos, rot);
 
     pos = _avg_joints[JointType_SpineMid].positionAvg.getAverage();
     rot = _avg_joints[JointType_SpineMid].orientationAvg.getAverage();
 
-    _cal_trans[JointType_SpineMid] = computeOffset(defaultToReferenceMat, inputCalibration.defaultSpine2, pos, rot);
+    _cal_trans[JointType_SpineMid] = computeOffset(defaultToReferenceMat, inputCalibration.defaultSpine2, sensorToAvatarMat, pos, rot);
 
 }
 
 
-glm::mat4 KinectPlugin::InputDevice::computeOffset(glm::mat4 defaultToReferenceMat, glm::mat4 defaultJointMat, glm::vec3 jointPos, glm::quat jointRot) {
+glm::mat4 KinectPlugin::InputDevice::computeOffset(glm::mat4 defaultToReferenceMat, glm::mat4 defaultJointMat, glm::mat4 sensorToAvatar, glm::vec3 jointPos, glm::quat jointRot) {
     glm::mat4 poseMat = createMatFromQuatAndPos(jointRot, jointPos);
+    // convert to avatar space 
+
     glm::mat4 referenceJointMat = defaultToReferenceMat * defaultJointMat;
     return glm::inverse(poseMat) * referenceJointMat;
 }
@@ -1098,8 +1117,10 @@ void KinectPlugin::InputDevice::applyTransform(const size_t &i, float deltaTime,
         glm::vec3 angularVel = { 0.0f, 0.0f, 0.0f };
 
         // transform previous position
+        
+        
 
-        pos = prevJoints.position;
+        /*pos = prevJoints.position;
         rot = prevJoints.orientation;
 
         glm::mat4 prevJointMat = createMatFromQuatAndPos(rot, pos);
@@ -1108,12 +1129,15 @@ void KinectPlugin::InputDevice::applyTransform(const size_t &i, float deltaTime,
         glm::vec3 prevPos = extractTranslation(prevJointMat);
         glm::quat prevRot = glmExtractRotation(prevJointMat);
 
+        linearVel = (pos - (prevJoints[i].position * METERS_PER_CENTIMETER)) / deltaTime;  // m/s
+
         // quat log imaginary part points along the axis of rotation, with length of one half the angle of rotation.
         if (glm::dot(prevRot, prevRot) != 0.0) {
             glm::quat d = glm::log(rot * glm::inverse(prevRot));
             angularVel = glm::vec3(d.x, d.y, d.z) / (0.5f * deltaTime); // radians/s
         }
         
+        */
         _poseStateMap[poseIndex] = controller::Pose(pos, rot, linearVel, angularVel);
         printPoseStateMap(i);
     }
