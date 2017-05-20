@@ -650,7 +650,7 @@ void KinectPlugin::InputDevice::update(float deltaTime, const controller::InputC
             _joints[i] = tmpJoint;
 
 
-            bool flag = InAvJointSet(i);
+            bool flag = InJointSet(i);
             if (flag) {
                 averageJoints(tmpJoint, i);   // changed definition to use single joint
             }
@@ -762,6 +762,17 @@ void KinectPlugin::InputDevice::calibrate(const controller::InputCalibrationData
     rot = _avg_joints[JointType_FootRight].orientationAvg.getAverage();
 
     _cal_trans[JointType_FootRight] = computeOffset(defaultToReferenceMat, inputCalibration.defaultRightFoot, sensorToAvatarMat, pos, rot);
+
+    pos = _avg_joints[JointType_HandLeft].positionAvg.getAverage();
+    rot = _avg_joints[JointType_HandLeft].orientationAvg.getAverage();
+
+    _cal_trans[JointType_HandLeft] = computeOffset(defaultToReferenceMat, inputCalibration.defaultSpine2, sensorToAvatarMat, pos, rot);
+
+    pos = _avg_joints[JointType_HandRight].positionAvg.getAverage();
+    rot = _avg_joints[JointType_HandRight].orientationAvg.getAverage();
+
+    _cal_trans[JointType_HandRight] = computeOffset(defaultToReferenceMat, inputCalibration.defaultSpine2, sensorToAvatarMat, pos, rot);
+
 
     pos = _avg_joints[JointType_SpineBase].positionAvg.getAverage();
     rot = _avg_joints[JointType_SpineBase].orientationAvg.getAverage();

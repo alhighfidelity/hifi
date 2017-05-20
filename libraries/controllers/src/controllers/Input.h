@@ -25,6 +25,8 @@ struct InputCalibrationData {
     glm::mat4 defaultHips;         // default pose for hips joint in avatar space
     glm::mat4 defaultLeftFoot;     // default pose for leftFoot joint in avatar space
     glm::mat4 defaultRightFoot;    // default pose for leftFoot joint in avatar space
+    glm::mat4 defaultLeftHand;     // default pose for left hand joint in avatar space
+    glm::mat4 defaultRightHand;    // default pose for right hand joint in avatar space
 };
 
 enum class ChannelType {

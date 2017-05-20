@@ -93,10 +93,15 @@ static const glm::vec3 DEFAULT_AVATAR_HEAD_POS { 0.0f, 0.53f, 0.0f };
 static const glm::vec3 DEFAULT_AVATAR_NECK_POS { 0.0f, 0.445f, 0.025f };
 static const glm::vec3 DEFAULT_AVATAR_SPINE2_POS { 0.0f, 0.32f, 0.02f };
 static const glm::vec3 DEFAULT_AVATAR_HIPS_POS { 0.0f, 0.0f, 0.0f };
+static const glm::quat DEFAULT_AVATAR_HIPS_ROT { 0.0f, 0.0f, 1.0f, 0.0f };
 static const glm::vec3 DEFAULT_AVATAR_LEFTFOOT_POS { -0.08f, -0.96f, 0.029f};
 static const glm::quat DEFAULT_AVATAR_LEFTFOOT_ROT { -0.40167322754859924f, 0.9154590368270874f, -0.005437685176730156f, -0.023744143545627594f };
 static const glm::vec3 DEFAULT_AVATAR_RIGHTFOOT_POS { 0.08f, -0.96f, 0.029f };
 static const glm::quat DEFAULT_AVATAR_RIGHTFOOT_ROT { -0.4016716778278351f, 0.9154615998268127f, 0.0053307069465518f, 0.023696165531873703f };
+static const glm::vec3 DEFAULT_AVATAR_RIGHTHAND_POS { 0.8f, 0.4f, 0.0f };
+static const glm::quat DEFAULT_AVATAR_RIGHTHAND_ROT { 0.5f, 0.5f, 0.5f, -0.5f };
+static const glm::vec3 DEFAULT_AVATAR_LEFTHAND_POS { -0.8f, 0.4f, 0.0f };
+static const glm::quat DEFAULT_AVATAR_LEFTHAND_ROT{ 0.5f, 0.5f, -0.5f, 0.5f };
 
 MyAvatar::MyAvatar(QThread* thread, RigPointer rig) :
     Avatar(thread, rig),
@@ -2757,7 +2762,7 @@ glm::mat4 MyAvatar::getHipsCalibrationMat() const {
         auto hipsRot = getAbsoluteDefaultJointRotationInObjectFrame(hipsIndex);
         return createMatFromQuatAndPos(hipsRot, hipsPos);
     } else {
-        return createMatFromQuatAndPos(DEFAULT_AVATAR_HIPS_POS, DEFAULT_AVATAR_HIPS_POS);
+        return createMatFromQuatAndPos(DEFAULT_AVATAR_HIPS_ROT, DEFAULT_AVATAR_HIPS_POS);
     }
 }
 
@@ -2769,7 +2774,7 @@ glm::mat4 MyAvatar::getLeftFootCalibrationMat() const {
         auto leftFootRot = getAbsoluteDefaultJointRotationInObjectFrame(leftFootIndex);
         return createMatFromQuatAndPos(leftFootRot, leftFootPos);
     } else {
-        return createMatFromQuatAndPos(DEFAULT_AVATAR_LEFTFOOT_POS, DEFAULT_AVATAR_LEFTFOOT_POS);
+        return createMatFromQuatAndPos(DEFAULT_AVATAR_LEFTFOOT_ROT, DEFAULT_AVATAR_LEFTFOOT_POS);
     }
 }
 
@@ -2781,8 +2786,40 @@ glm::mat4 MyAvatar::getRightFootCalibrationMat() const {
         auto rightFootRot = getAbsoluteDefaultJointRotationInObjectFrame(rightFootIndex);
         return createMatFromQuatAndPos(rightFootRot, rightFootPos);
     } else {
-        return createMatFromQuatAndPos(DEFAULT_AVATAR_RIGHTFOOT_POS, DEFAULT_AVATAR_RIGHTFOOT_POS);
+        return createMatFromQuatAndPos(DEFAULT_AVATAR_RIGHTFOOT_ROT, DEFAULT_AVATAR_RIGHTFOOT_POS);
     }
+}
+
+
+glm::mat4 MyAvatar::getLeftHandCalibrationMat() const {
+
+    // TODO: as an optimization cache this computation, then invalidate the cache when the avatar model is changed.
+    int leftHandIndex = _rig->indexOfJoint("LeftHand");
+    if (leftHandIndex >= 0) {
+        auto leftHandPos = getAbsoluteDefaultJointTranslationInObjectFrame(leftHandIndex);
+        auto rightHandRot = getAbsoluteDefaultJointRotationInObjectFrame(leftHandIndex);
+        return createMatFromQuatAndPos(rightHandRot, leftHandPos);
+    }
+    else {
+        return createMatFromQuatAndPos(DEFAULT_AVATAR_LEFTHAND_ROT, DEFAULT_AVATAR_LEFTHAND_POS);
+    }
+}
+
+
+glm::mat4 MyAvatar::getRightHandCalibrationMat() const {
+
+    // TODO: as an optimization cache this computation, then invalidate the cache when the avatar model is changed.
+    int rightHandIndex = _rig->indexOfJoint("RightHand");
+    if (rightHandIndex >= 0) {
+        auto rightHandPos = getAbsoluteDefaultJointTranslationInObjectFrame(rightHandIndex);
+        auto rightHandRot = getAbsoluteDefaultJointRotationInObjectFrame(rightHandIndex);
+        return createMatFromQuatAndPos(rightHandRot, rightHandPos);
+    }
+    else {
+        return createMatFromQuatAndPos(DEFAULT_AVATAR_RIGHTHAND_ROT, DEFAULT_AVATAR_RIGHTHAND_POS);
+    }
+
+
 }
 
 bool MyAvatar::pinJoint(int index, const glm::vec3& position, const glm::quat& orientation) {
