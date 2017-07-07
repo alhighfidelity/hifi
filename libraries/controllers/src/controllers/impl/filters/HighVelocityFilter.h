@@ -38,8 +38,9 @@ namespace controller {
            
                 glm::vec3 diff(glm::vec3 v1, glm::vec3 v2) const;
                 void pThreshold(glm::vec3 d_v,glm::vec3 v) const;
-                void qThreshold(const float &data) const;
+                void HighVelocityFilter::qThreshold(const float &signal, const float &threshold) const;
                 void processPos(const int &k) const;
+                void processRot() const;
                 glm::quat  deltaQ(glm::quat qvec) const;
                 float qDot(glm::quat q1, glm::quat q2) const;
                 glm::quat unitVecAngle(glm::quat q) const;
@@ -47,8 +48,10 @@ namespace controller {
                 float maxIndex(glm::vec3 v) const;
                 glm::quat qFlipHemi(glm::quat q) const;
                 std::vector<float> createPosStep(std::vector<float> data) const;
+                std::vector <glm::quat> createRotStep() const;
                 std::vector<float>  getPos(const int &i, std::vector<glm::vec3> v) const;
                 void setPosOut(const int &k, std::vector<float> v) const;
+                void setRotOut(std::vector<glm::quat> vq) const;
                 void buildOutputArrays() const;
                 glm::vec3 updatePosOut(glm::vec3 v) const;
                 glm::quat updateRotOut(glm::quat q) const;
@@ -57,6 +60,8 @@ namespace controller {
                 mutable std::vector<glm::quat> _rotOutput;
                 float _p_thresh{ 0.5f };
                 int _N;
+                mutable int _p_count { 0 };
+                mutable int _q_count{ 0 };
                 float _q_thresh { 0.5f };
                 const int _p_weight{ 2 };
                 const int _q_weight{ 2 };

@@ -31,18 +31,24 @@ namespace controller {
         size_t N = _posOutput.size();
 
         if ( N > 0) {
-            glm::vec3 d_pos = diff(_posOutput[0], pos);
+            glm::vec3 d_pos = diff(_posOutput[_p_count-1], pos);
             d_pos = abs(d_pos);
             pThreshold(d_pos,pos);
         }
       
-        updatePosOut(pos);
+        glm::vec3 pOut = updatePosOut(pos);
 
         // rotation processing
 
-        
+        glm::quat dQ = deltaQ(rot);
+        float q_dot = qDot(_rotOutput[_p_count-1],dQ);
+        qThreshold(q_dot, _q_thresh);
 
-       
+        glm::quat qOut = updateRotOut(rot);
+
+
+        // set up output
+
 
         return ret;
     }
@@ -64,10 +70,11 @@ namespace controller {
         }
     }
 
-    void HighVelocityFilter::qThreshold(const float &data) const {
-       
-        
+    void HighVelocityFilter::qThreshold(const float &signal, const float &threshold) const {
 
+        if (signal > threshold){
+            processRot();
+        }
     }
 
     glm::quat HighVelocityFilter::deltaQ(glm::quat q) const {
@@ -197,6 +204,38 @@ namespace controller {
         setPosOut(k, avg);
     }
 
+
+    void HighVelocityFilter::processRot() const {
+        
+        ThreadSafeMovingAverage<glm::quat, 2> mvAvg;
+        std::vector <glm::quat> vRot = createRotStep();
+      
+        std::vector<glm::quat> avg;
+        
+        for (int i = 0; i < vRot.size(); i++) {
+            mvAvg.addSample(vRot[i]);
+            avg.push_back(mvAvg.getAverage());
+        }
+
+        setRotOut(avg);
+    }
+
+
+
+    std::vector <glm::quat>  HighVelocityFilter::createRotStep() const {
+
+        std::vector<glm::quat> ret;
+
+        ret.push_back(_rotOutput[0]);
+
+        for (int i = 1; i < _N; i++) {
+            ret.push_back(_rotOutput[_N - 1]);
+        }
+
+        return ret;
+    }
+
+
     std::vector<float> HighVelocityFilter::createPosStep(std::vector<float> data) const {
          
         std::vector<float> ret;
@@ -229,13 +268,21 @@ namespace controller {
 
     void  HighVelocityFilter::setPosOut(const int &k, std::vector<float> v) const {
 
-
         for (int i = 0; i < v.size(); i++) {
-            glm::vec3 vtmp;
-            _posOutput[i][k];
+            _posOutput[i][k] = v[i];
         }
 
     }
+
+    void  HighVelocityFilter::setRotOut(std::vector<glm::quat> vq) const {
+
+        for (int i = 0; i < vq.size(); i++) {
+            _rotOutput[i] = vq[i];
+        }
+    }
+
+
+
 
     void HighVelocityFilter::buildOutputArrays() const {
         
@@ -259,6 +306,7 @@ namespace controller {
         if (_posOutput.empty()){
             ret = v;
             _posOutput.push_back(v);
+            _p_count++;
             return ret;
         }
 
@@ -267,6 +315,7 @@ namespace controller {
         if (N  < _N) {
             ret = _posOutput[0];
             _posOutput.push_back(v);
+            _p_count++;
             return ret;
         }
 
@@ -283,14 +332,30 @@ namespace controller {
     glm::quat HighVelocityFilter::updateRotOut(glm::quat q) const {
         
         glm::quat ret;
-        std::vector<glm::quat>::iterator it;
+       
 
+        if (_rotOutput.empty()){
+            ret = q;
+            _rotOutput.push_back(q);
+            _q_count++;
+            return ret;
+        }
 
-        ret = _rotOutput[_N - 1];
-        _posOutput.pop_back();
+        size_t N = _rotOutput.size();
 
-        it = _rotOutput.begin();
-        _rotOutput.insert(it, q);
+        if (N  < _N) {
+            ret = _rotOutput[0];
+            _rotOutput.push_back(q);
+            _q_count++;
+            return ret;
+        }
+
+        // N should be equal to _N
+
+        ret = _rotOutput[0];
+        std::vector<glm::quat>::iterator it = _rotOutput.begin();
+        _rotOutput.erase(it);
+        _rotOutput.push_back(q);
 
         return ret;
     }
