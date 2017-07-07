@@ -31,6 +31,7 @@
 #include "filters/PostTransformFilter.h"
 #include "filters/RotateFilter.h"
 #include "filters/LowVelocityFilter.h"
+#include "filters/HighVelocityFilter.h"
 #include "conditionals/AndConditional.h"
 
 using namespace controller;
@@ -130,6 +131,11 @@ QObject* RouteBuilderProxy::rotate(glm::quat rotation) {
 
 QObject* RouteBuilderProxy::lowVelocity(float rotationConstant, float translationConstant) {
     addFilter(std::make_shared<LowVelocityFilter>(rotationConstant, translationConstant));
+    return this;
+}
+
+QObject* RouteBuilderProxy::highVelocityFilter(float pThresh, float pWeight, int size) {
+    addFilter(std::make_shared<HighVelocityFilter>(pThresh, pWeight, size));
     return this;
 }
 

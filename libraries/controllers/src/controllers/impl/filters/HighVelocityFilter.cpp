@@ -17,6 +17,32 @@ namespace controller {
         buildOutputArrays();
     }
 
+    HighVelocityFilter::HighVelocityFilter(float pThresh, float pWeight, int size){
+
+        _pThresh = pThresh;
+        _pWeight = pWeight;
+        _n = size;
+
+        buildOutputArrays();
+
+    }
+
+    HighVelocityFilter::HighVelocityFilter(const HighVelocityFilter &other) {
+       
+
+        _pThresh = other._pThresh;
+        _qThresh = other._qThresh;
+        _n = other._n;
+        _pCount = other._pCount;
+        _qCount = other._qCount;
+
+        _pWeight = other._pWeight;
+        _qWeight = other._qWeight;
+        _qRef = other._qRef;
+
+    }
+
+
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
         Pose ret;
@@ -31,7 +57,7 @@ namespace controller {
         size_t N = _posOutput.size();
 
         if ( N > 0) {
-            glm::vec3 d_pos = diff(_posOutput[_p_count-1], pos);
+            glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
             d_pos = abs(d_pos);
             pThreshold(d_pos,pos);
         }
@@ -41,17 +67,34 @@ namespace controller {
         // rotation processing
 
         glm::quat dQ = deltaQ(rot);
-        float q_dot = qDot(_rotOutput[_p_count-1],dQ);
-        qThreshold(q_dot, _q_thresh);
+        float q_dot = qDot(_rotOutput[_pCount-1],dQ);
+        qThreshold(q_dot, _qThresh);
 
         glm::quat qOut = updateRotOut(rot);
 
-
         // set up output
 
+       ret = DataToPose(pOut, qOut);
+
+       return ret;
+    }
+
+
+    Pose HighVelocityFilter::DataToPose(glm::vec3 pos, glm::quat rot) const {
+
+        Pose ret;
+
+        // set position and rotation data
+
+        ret.translation = pos;
+        ret.rotation = rot;
 
         return ret;
     }
+
+
+
+
 
     glm::vec3 HighVelocityFilter::diff(glm::vec3 v1, glm::vec3 v2) const {
         
@@ -64,7 +107,7 @@ namespace controller {
     void HighVelocityFilter::pThreshold(glm::vec3 v,glm::vec3 pos) const {
         
         for (int i = 0; i < 3; i++){
-            if (v[i] > _p_thresh) {
+            if (v[i] > _pThresh) {
                 processPos(i);
             }
         }
@@ -80,7 +123,7 @@ namespace controller {
     glm::quat HighVelocityFilter::deltaQ(glm::quat q) const {
 
         if (!_rotOutput.empty()) {
-            _q_ref = _rotOutput[0];
+            _qRef = _rotOutput[0];
         }
 
         glm::quat qtmp = q;
@@ -101,7 +144,7 @@ namespace controller {
 
         glm::quat ret = q;
 
-        if (glm::dot(_q_ref, q) < 0) {
+        if (glm::dot(_qRef, q) < 0) {
             ret = -ret;
         }
 
@@ -228,8 +271,8 @@ namespace controller {
 
         ret.push_back(_rotOutput[0]);
 
-        for (int i = 1; i < _N; i++) {
-            ret.push_back(_rotOutput[_N - 1]);
+        for (int i = 1; i < _n; i++) {
+            ret.push_back(_rotOutput[_n - 1]);
         }
 
         return ret;
@@ -291,7 +334,7 @@ namespace controller {
         glm::vec3 vtmp = { 0.0f, 0.0f, 0.0f };
         glm::quat qtmp = { 0.0f, 0.0f, 0.0f, 0.0f };
        
-        for (int i = 0; i < _N; i++) {
+        for (int i = 0; i < _n; i++) {
             _posOutput.push_back(vtmp);
             _rotOutput.push_back(qtmp);
         }
@@ -306,20 +349,20 @@ namespace controller {
         if (_posOutput.empty()){
             ret = v;
             _posOutput.push_back(v);
-            _p_count++;
+            _pCount++;
             return ret;
         }
 
         size_t N = _posOutput.size();
 
-        if (N  < _N) {
+        if (N  < _n) {
             ret = _posOutput[0];
             _posOutput.push_back(v);
-            _p_count++;
+            _pCount++;
             return ret;
         }
 
-        // N should be equal to _N
+        // N should be equal to _n
 
         ret = _posOutput[0];
         std::vector<glm::vec3>::iterator it = _posOutput.begin();
@@ -337,20 +380,20 @@ namespace controller {
         if (_rotOutput.empty()){
             ret = q;
             _rotOutput.push_back(q);
-            _q_count++;
+            _qCount++;
             return ret;
         }
 
         size_t N = _rotOutput.size();
 
-        if (N  < _N) {
+        if (N  < _n) {
             ret = _rotOutput[0];
             _rotOutput.push_back(q);
-            _q_count++;
+            _qCount++;
             return ret;
         }
 
-        // N should be equal to _N
+        // N should be equal to _n
 
         ret = _rotOutput[0];
         std::vector<glm::quat>::iterator it = _rotOutput.begin();
@@ -366,9 +409,9 @@ namespace controller {
             auto obj = parameters.toObject();
             if (obj.contains(JSON_P_THRESHOLD) && obj.contains(JSON_Q_THRESHOLD) && obj.contains(JSON_SIZE) && 
                 obj.contains(JSON_P_WEIGHT) && obj.contains(JSON_Q_WEIGHT)) {
-                _p_thresh = obj[JSON_P_THRESHOLD].toDouble();
-                _q_thresh = obj[JSON_Q_THRESHOLD].toDouble();
-                _N = obj[JSON_SIZE].toInt();
+                _pThresh = obj[JSON_P_THRESHOLD].toDouble();
+                _pWeight = obj[JSON_P_WEIGHT].toDouble();
+                _n = obj[JSON_SIZE].toInt();
                 //const_cast<int&>(_p_weight) = obj[JSON_P_WEIGHT].toInt();
                 //const_cast<int&>(_q_weight) = obj[JSON_Q_WEIGHT].toInt();
                 return true;

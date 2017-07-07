@@ -30,8 +30,11 @@ namespace controller {
            
         public:
             HighVelocityFilter();
+            HighVelocityFilter(float pThresh, float pWeight, int size);
+            HighVelocityFilter(const HighVelocityFilter &other);
             
-            virtual Pose apply(Pose newPose) const;
+            virtual float apply(float value) const override { return value; }
+            virtual Pose apply(Pose newPose) const override;
             virtual bool parseParameters(const QJsonValue& parameters) override;
 
             private:
@@ -55,17 +58,17 @@ namespace controller {
                 void buildOutputArrays() const;
                 glm::vec3 updatePosOut(glm::vec3 v) const;
                 glm::quat updateRotOut(glm::quat q) const;
-            
+                Pose DataToPose(glm::vec3 pos, glm::quat rot) const;
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
-                float _p_thresh{ 0.5f };
-                int _N;
-                mutable int _p_count { 0 };
-                mutable int _q_count{ 0 };
-                float _q_thresh { 0.5f };
-                const int _p_weight{ 2 };
-                const int _q_weight{ 2 };
-                mutable glm::quat _q_ref;
+                float _pThresh{ 0.5f };
+                int _n;
+                mutable int _pCount { 0 };
+                mutable int _qCount{ 0 };
+                float _qThresh { 0.5f };
+                int _pWeight{ 2 };
+                int _qWeight{ 2 };
+                mutable glm::quat _qRef;
     };
 
 }
