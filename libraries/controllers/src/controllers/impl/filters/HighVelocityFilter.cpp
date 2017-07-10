@@ -14,13 +14,24 @@ namespace controller {
 
     HighVelocityFilter::HighVelocityFilter() {
         
+        _pCount = 0;
+        _qCount = 0;
+        _pThresh = 0.5f;
+        _qThresh = 0.5f;
+
         buildOutputArrays();
     }
 
-    HighVelocityFilter::HighVelocityFilter(float pThresh, float pWeight, int size){
+    HighVelocityFilter::HighVelocityFilter(float pThreshold, int pWeight, float qThreshold, int qWeight, int size){
 
-        _pThresh = pThresh;
+        _pThresh = pThreshold;
+        _qThresh = qThreshold;
+        _pCount = 0;
+        _qCount = 0;
         _pWeight = pWeight;
+        _qWeight = qWeight;
+        _qRef = { 1.0f, 0.0f, 0.0f, 0.0f };
+
         _n = size;
 
         buildOutputArrays();
@@ -45,36 +56,67 @@ namespace controller {
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
-        Pose ret;
+        glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
+        glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+        float flg1 = glm::dot(newPose.getTranslation(), vTest);
+        //float flg2 = glm::dot(newPose.getRotation(), qTest);
+
+        if (flg1 == 0.0f) {
+            //qDebug() << "HighVelocityFilter";
+            //qDebug() << " zero input";
+            return newPose;
+
+        }
+
+        Pose ret;
         std::vector<glm::vec3> test;
 
         vec3 pos = newPose.getTranslation();
         quat rot = newPose.getRotation();
-
-        // translation processing
          
         size_t N = _posOutput.size();
 
         if ( N > 0) {
+
+            // print input values
+
+                qDebug() << "Input: "<< pos.x << " " << pos.y << " " << pos.z
+                << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
+
+
+
+            // translation processing
+
             glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
             d_pos = abs(d_pos);
+            //qDebug() << "HighVelocityFilter";
+            //qDebug() << "N = " << N << " d_pos  = " << glm::to_string(d_pos).c_str();
+            //qDebug() << " pos  = " << glm::to_string(pos).c_str() << "_posOutput[_pCount-1] = " << glm::to_string(_posOutput[_pCount - 1]).c_str()
+            //    << " rotation = " << glm::to_string(rot).c_str();
             pThreshold(d_pos,pos);
+
+           
+            // rotation processing
+
+            glm::quat dQ = deltaQ(rot);
+            float q_dot = qDot(_rotOutput[_pCount - 1], dQ);
+            qThreshold(q_dot, _qThresh);
+
         }
       
-        glm::vec3 pOut = updatePosOut(pos);
-
-        // rotation processing
-
-        glm::quat dQ = deltaQ(rot);
-        float q_dot = qDot(_rotOutput[_pCount-1],dQ);
-        qThreshold(q_dot, _qThresh);
-
-        glm::quat qOut = updateRotOut(rot);
-
         // set up output
 
-       ret = DataToPose(pOut, qOut);
+        glm::vec3 pOut = updatePosOut(pos);
+        qDebug() << "N = " << N << " pOut  = " << glm::to_string(pOut).c_str();
+
+        glm::quat qOut = updateRotOut(rot);
+        ret = DataToPose(pOut, qOut);
+
+        // print output values
+
+        qDebug() << "Output "<< pOut.x << " " << pOut.y << " " << pOut.z
+            << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
 
        return ret;
     }
@@ -412,8 +454,8 @@ namespace controller {
                 _pThresh = obj[JSON_P_THRESHOLD].toDouble();
                 _pWeight = obj[JSON_P_WEIGHT].toDouble();
                 _n = obj[JSON_SIZE].toInt();
-                //const_cast<int&>(_p_weight) = obj[JSON_P_WEIGHT].toInt();
-                //const_cast<int&>(_q_weight) = obj[JSON_Q_WEIGHT].toInt();
+                _qThresh = obj[JSON_Q_THRESHOLD].toInt();
+                _qWeight = obj[JSON_Q_WEIGHT].toInt();
                 return true;
             }
         }

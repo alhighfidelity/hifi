@@ -134,8 +134,8 @@ QObject* RouteBuilderProxy::lowVelocity(float rotationConstant, float translatio
     return this;
 }
 
-QObject* RouteBuilderProxy::highVelocityFilter(float pThresh, float pWeight, int size) {
-    addFilter(std::make_shared<HighVelocityFilter>(pThresh, pWeight, size));
+QObject* RouteBuilderProxy::highVelocityFilter(float pThreshold, int pWeight, float qThreshold, int qWeight, int size) {
+    addFilter(std::make_shared<HighVelocityFilter>(pThreshold , pWeight, qThreshold, qWeight, size));
     return this;
 }
 

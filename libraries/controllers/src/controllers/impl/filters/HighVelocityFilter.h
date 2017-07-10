@@ -14,7 +14,9 @@
 #include "../Filter.h"
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
+#include <QtCore/QDebug>
 #include <vector>
+#include <glm/gtx/string_cast.hpp>
 
 static const QString JSON_P_THRESHOLD = QStringLiteral("p_threshold");
 static const QString JSON_Q_THRESHOLD = QStringLiteral("q_threshold");
@@ -30,7 +32,7 @@ namespace controller {
            
         public:
             HighVelocityFilter();
-            HighVelocityFilter(float pThresh, float pWeight, int size);
+            HighVelocityFilter(float pThreshold, int pWeight, float qThreshold, int qWeight, int size);
             HighVelocityFilter(const HighVelocityFilter &other);
             
             virtual float apply(float value) const override { return value; }
@@ -62,7 +64,7 @@ namespace controller {
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
                 float _pThresh{ 0.5f };
-                int _n;
+                int _n{ 0 };
                 mutable int _pCount { 0 };
                 mutable int _qCount{ 0 };
                 float _qThresh { 0.5f };
