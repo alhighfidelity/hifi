@@ -69,27 +69,48 @@ namespace controller {
 
         }
 
+
+
         Pose ret;
         std::vector<glm::vec3> test;
 
         vec3 pos = newPose.getTranslation();
         quat rot = newPose.getRotation();
+        qDebug() << "Output: " << pos.x << " " << pos.y << " " << pos.z
+            << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
+
+        ret = DataToPose(pos, rot);
+
+        return ret;
+
+
          
         size_t N = _posOutput.size();
 
         if ( N > 0) {
 
-            // print input values
+            // print input parameters
 
-                qDebug() << "Input: "<< pos.x << " " << pos.y << " " << pos.z
-                << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
-
+            //qDebug() << "parameters" << "\t" << "_pThresh = " << _pThresh << "\t" << "_pWeight = " << _pWeight;
 
 
             // translation processing
 
             glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
             d_pos = abs(d_pos);
+
+            glm::vec3 v1 = _posOutput[_pCount - 1];
+            glm::vec3 v2 = pos;
+
+            //qDebug() << "pCount - 1 " << _pCount - 1 << " v1 = \t" << v1.x << "\t" << v1.y << "\t" << v1.z
+            //                          << "\t" << "v2 = " << v2.x << "\t" << v2.y << "\t" << v2.z
+            //                          << " d_pos: \t" << d_pos.x << "\t" << d_pos.y << "\t" << d_pos.z;
+           
+            qDebug() << "d_pos_z\t" << d_pos.z;
+
+
+            // << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
+
             //qDebug() << "HighVelocityFilter";
             //qDebug() << "N = " << N << " d_pos  = " << glm::to_string(d_pos).c_str();
             //qDebug() << " pos  = " << glm::to_string(pos).c_str() << "_posOutput[_pCount-1] = " << glm::to_string(_posOutput[_pCount - 1]).c_str()
@@ -99,25 +120,28 @@ namespace controller {
            
             // rotation processing
 
-            glm::quat dQ = deltaQ(rot);
-            float q_dot = qDot(_rotOutput[_pCount - 1], dQ);
-            qThreshold(q_dot, _qThresh);
+            //glm::quat dQ = deltaQ(rot);
+            //float q_dot = qDot(_rotOutput[_pCount - 1], dQ);
+            //qThreshold(q_dot, _qThresh);
 
         }
       
         // set up output
 
         glm::vec3 pOut = updatePosOut(pos);
-        qDebug() << "N = " << N << " pOut  = " << glm::to_string(pOut).c_str();
+        //qDebug() << "N = " << N << " pOut  = " << glm::to_string(pOut).c_str();
 
         glm::quat qOut = updateRotOut(rot);
+
+        
+
+
+
         ret = DataToPose(pOut, qOut);
 
         // print output values
 
-        qDebug() << "Output "<< pOut.x << " " << pOut.y << " " << pOut.z
-            << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
-
+     
        return ret;
     }
 
