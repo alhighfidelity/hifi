@@ -70,7 +70,6 @@ namespace controller {
         }
 
 
-
         Pose ret;
         std::vector<glm::vec3> test;
 
