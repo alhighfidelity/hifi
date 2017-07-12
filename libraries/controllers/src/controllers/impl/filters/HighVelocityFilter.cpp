@@ -235,8 +235,8 @@ namespace controller {
         int indx = 0;
 
         for (int i = 0; i < 3; i++) {
-            if (abs(v[i]) > max) {
-                max = abs(v[i]);
+            if (fabs(v[i]) > max) {
+                max = fabs(v[i]);
                 indx = i;
             }
         }
@@ -247,11 +247,11 @@ namespace controller {
     glm::quat HighVelocityFilter::unitVecAngle(glm::quat q) const {
 
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
-        float psi = 2.0*acos(q.w);
-        float s = (float) sin(psi / 2.0);
+        float psi = 2.0*acosf(q.w);
+        float s = sinf(psi / 2.0);
 
         if (s == 0) {
-            if (abs(std::fmod(psi, M_PI)) < 1e-6){
+            if (fabs(std::fmod(psi, M_PI)) < 1e-6){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;
@@ -321,7 +321,7 @@ namespace controller {
 
         ret.push_back(_rotOutput[0]);
 
-        for (int i = 1; i < _n; i++) {
+        for (size_t i = 1; i < _n; i++) {
             ret.push_back(_rotOutput[_n - 1]);
         }
 
@@ -384,7 +384,7 @@ namespace controller {
         glm::vec3 vtmp = { 0.0f, 0.0f, 0.0f };
         glm::quat qtmp = { 0.0f, 0.0f, 0.0f, 0.0f };
        
-        for (int i = 0; i < _n; i++) {
+        for (size_t i = 0; i < _n; i++) {
             _posOutput.push_back(vtmp);
             _rotOutput.push_back(qtmp);
         }
