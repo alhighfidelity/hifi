@@ -64,7 +64,7 @@ namespace controller {
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
                 float _pThresh{ 0.5f };
-                int _n{ 0 };
+                size_t _n{ 0 };
                 mutable int _pCount { 0 };
                 mutable int _qCount{ 0 };
                 float _qThresh { 0.5f };

@@ -61,8 +61,8 @@ namespace controller {
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
-        glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
-        glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
+        //glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
+        //glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
 
         vec3 pos = newPose.getTranslation();
         quat rot = newPose.getRotation();
@@ -70,7 +70,7 @@ namespace controller {
         qDebug() << "Input: " << pos.x << " " << pos.y << " " << pos.z
             << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
   
-        size_t N = _posOutput.size();
+        //size_t N = _posOutput.size();
 
         // if ( N > 0) {
 
@@ -248,7 +248,7 @@ namespace controller {
 
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
         float psi = 2.0*acos(q.w);
-        float s = sin(psi / 2.0);
+        float s = (float) sin(psi / 2.0);
 
         if (s == 0) {
             if (abs(std::fmod(psi, M_PI)) < 1e-6){
@@ -290,7 +290,7 @@ namespace controller {
         std::vector <float> vPos = createPosStep(pos);
         std::vector<float> avg;
 
-        for (int i = 0; i < vPos.size(); i++) {
+        for (size_t i = 0; i < vPos.size(); i++) {
             mvAvg.addSample(vPos[i]);
             avg.push_back(mvAvg.getAverage());
         }
@@ -305,7 +305,7 @@ namespace controller {
       
         std::vector<glm::quat> avg;
         
-        for (int i = 0; i < vRot.size(); i++) {
+        for (size_t i = 0; i < vRot.size(); i++) {
             mvAvg.addSample(vRot[i]);
             avg.push_back(mvAvg.getAverage());
         }
@@ -340,7 +340,7 @@ namespace controller {
        
         ret.push_back(data[0]);
 
-        for (int i = 1; i < N; i++) {
+        for (size_t i = 1; i < N; i++) {
             ret.push_back(data[N-1]);
         }
 
@@ -352,7 +352,7 @@ namespace controller {
 
         std::vector<float> ret;
 
-        for (int i = 0; i < v.size(); i++) {
+        for (size_t i = 0; i < v.size(); i++) {
             ret.push_back(v[i][k]);
         }
 
@@ -361,7 +361,7 @@ namespace controller {
 
     void  HighVelocityFilter::setPosOut(const int &k, std::vector<float> v) const {
 
-        for (int i = 0; i < v.size(); i++) {
+        for (size_t i = 0; i < v.size(); i++) {
             _posOutput[i][k] = v[i];
         }
 
@@ -369,7 +369,7 @@ namespace controller {
 
     void  HighVelocityFilter::setRotOut(std::vector<glm::quat> vq) const {
 
-        for (int i = 0; i < vq.size(); i++) {
+        for (size_t i = 0; i < vq.size(); i++) {
             _rotOutput[i] = vq[i];
         }
     }
