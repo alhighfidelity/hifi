@@ -235,8 +235,8 @@ namespace controller {
         int indx = 0;
 
         for (int i = 0; i < 3; i++) {
-            if (fabs(v[i]) > max) {
-                max = fabs(v[i]);
+            if (fabsf(v[i]) > max) {
+                max = fabsf(v[i]);
                 indx = i;
             }
         }
@@ -251,7 +251,7 @@ namespace controller {
         float s = sinf(psi / 2.0);
 
         if (s == 0) {
-            if (fabs(std::fmod(psi, M_PI)) < 1e-6){
+            if (fabsf(std::fmodf(psi, M_PI)) < 1e-6){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;

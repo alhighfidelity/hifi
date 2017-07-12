@@ -17,6 +17,7 @@
 #include <QtCore/QDebug>
 #include <vector>
 #include <glm/gtx/string_cast.hpp>
+#include <cmath>
 
 static const QString JSON_P_THRESHOLD = QStringLiteral("p_threshold");
 static const QString JSON_Q_THRESHOLD = QStringLiteral("q_threshold");
