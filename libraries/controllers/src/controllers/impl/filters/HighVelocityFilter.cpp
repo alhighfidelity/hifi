@@ -119,7 +119,10 @@ namespace controller {
         glm::quat qOut = updateRotOut(rot);
 
         
-       Pose ret = DataToPose(pOut, qOut);
+       //Pose ret = DataToPose(pOut, qOut);
+
+        Pose ret = newPose;
+
 
         // print output values
 
@@ -251,7 +254,7 @@ namespace controller {
         float s = sinf(psi / 2.0);
 
         if (s == 0) {
-            if (fabsf(std::fmodf(psi, M_PI)) < 1e-6){
+            if (fabsf(std::fmodf(psi, (float)M_PI)) < 1e-6){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;
