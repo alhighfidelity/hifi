@@ -16,8 +16,13 @@ namespace controller {
         
         _pCount = 0;
         _qCount = 0;
-        _pThresh = 0.5f;
-        _qThresh = 0.5f;
+        _pThresh = 0.0;
+        _qThresh = 0.0f;
+        _pWeight = 0.0f;
+        _qWeight = 0.0f;
+        _posOutput.clear();
+
+        //qDebug() << " N = " << _posOutput.size();
 
         buildOutputArrays();
     }
@@ -59,34 +64,15 @@ namespace controller {
         glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
         glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        float flg1 = glm::dot(newPose.getTranslation(), vTest);
-        //float flg2 = glm::dot(newPose.getRotation(), qTest);
-
-        if (flg1 == 0.0f) {
-            //qDebug() << "HighVelocityFilter";
-            //qDebug() << " zero input";
-            return newPose;
-
-        }
-
-
-        Pose ret;
-        std::vector<glm::vec3> test;
-
         vec3 pos = newPose.getTranslation();
         quat rot = newPose.getRotation();
-        qDebug() << "Output: " << pos.x << " " << pos.y << " " << pos.z
+       
+        qDebug() << "Input: " << pos.x << " " << pos.y << " " << pos.z
             << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
-
-        ret = DataToPose(pos, rot);
-
-        return ret;
-
-
-         
+  
         size_t N = _posOutput.size();
 
-        if ( N > 0) {
+        // if ( N > 0) {
 
             // print input parameters
 
@@ -95,17 +81,17 @@ namespace controller {
 
             // translation processing
 
-            glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
-            d_pos = abs(d_pos);
+            //glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
+            //d_pos = abs(d_pos);
 
-            glm::vec3 v1 = _posOutput[_pCount - 1];
-            glm::vec3 v2 = pos;
+            //glm::vec3 v1 = _posOutput[_pCount - 1];
+            //glm::vec3 v2 = pos;
 
             //qDebug() << "pCount - 1 " << _pCount - 1 << " v1 = \t" << v1.x << "\t" << v1.y << "\t" << v1.z
             //                          << "\t" << "v2 = " << v2.x << "\t" << v2.y << "\t" << v2.z
             //                          << " d_pos: \t" << d_pos.x << "\t" << d_pos.y << "\t" << d_pos.z;
            
-            qDebug() << "d_pos_z\t" << d_pos.z;
+            //qDebug() << "d_pos_z\t" << d_pos.z;
 
 
             // << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
@@ -114,7 +100,7 @@ namespace controller {
             //qDebug() << "N = " << N << " d_pos  = " << glm::to_string(d_pos).c_str();
             //qDebug() << " pos  = " << glm::to_string(pos).c_str() << "_posOutput[_pCount-1] = " << glm::to_string(_posOutput[_pCount - 1]).c_str()
             //    << " rotation = " << glm::to_string(rot).c_str();
-            pThreshold(d_pos,pos);
+           // pThreshold(d_pos,pos);
 
            
             // rotation processing
@@ -123,7 +109,7 @@ namespace controller {
             //float q_dot = qDot(_rotOutput[_pCount - 1], dQ);
             //qThreshold(q_dot, _qThresh);
 
-        }
+        //}
       
         // set up output
 
@@ -133,13 +119,12 @@ namespace controller {
         glm::quat qOut = updateRotOut(rot);
 
         
-
-
-
-        ret = DataToPose(pOut, qOut);
+       Pose ret = DataToPose(pos, rot);
 
         // print output values
 
+       qDebug() << "Output: " << pos.x << " " << pos.y << " " << pos.z
+           << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
      
        return ret;
     }
@@ -409,12 +394,14 @@ namespace controller {
     glm::vec3 HighVelocityFilter::updatePosOut(glm::vec3 v) const {
 
         glm::vec3 ret;
-       
+        
+        qDebug() << "Input: N = " << _posOutput.size() << " " << v.x << " " << v.y << " " << v.z;
 
         if (_posOutput.empty()){
             ret = v;
             _posOutput.push_back(v);
             _pCount++;
+           
             return ret;
         }
 
@@ -433,6 +420,8 @@ namespace controller {
         std::vector<glm::vec3>::iterator it = _posOutput.begin();
         _posOutput.erase(it);
         _posOutput.push_back(v);
+
+        qDebug() << "Output: N = " << _posOutput.size() << " " << ret.x << " " << ret.y << " " << ret.z;
 
        return ret;
     }
