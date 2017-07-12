@@ -110,10 +110,6 @@ private:
         void emitCalibrationStatus(const bool success);
         void calibrateNextFrame();
 
-        void HighVelocityFilter(uint32_t deviceIndex);
-        void BuildHighVelocityFilter();
-        void processHighVelocityFilter();
-
         class FilteredStick {
         public:
             glm::vec2 process(float deltaTime, const glm::vec2& stick) {
@@ -187,7 +183,6 @@ private:
         bool _overrideHead { false };
         bool _overrideHands { false };
         mutable std::recursive_mutex _lock;
-        std::vector<PoseData> _highVelocityFilter;
         uint32_t _poseFilterSize;
         uint32_t _poseFilterCount;
         QString configToString(Config config);

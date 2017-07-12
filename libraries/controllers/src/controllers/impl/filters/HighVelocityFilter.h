@@ -43,7 +43,7 @@ namespace controller {
            
                 glm::vec3 diff(glm::vec3 v1, glm::vec3 v2) const;
                 void pThreshold(glm::vec3 d_v,glm::vec3 v) const;
-                void HighVelocityFilter::qThreshold(const float &signal, const float &threshold) const;
+                void qThreshold(const float &signal, const float &threshold) const;
                 void processPos(const int &k) const;
                 void processRot() const;
                 glm::quat  deltaQ(glm::quat qvec) const;

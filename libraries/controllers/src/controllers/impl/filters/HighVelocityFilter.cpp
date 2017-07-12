@@ -119,12 +119,12 @@ namespace controller {
         glm::quat qOut = updateRotOut(rot);
 
         
-       Pose ret = DataToPose(pos, rot);
+       Pose ret = DataToPose(pOut, qOut);
 
         // print output values
 
-       qDebug() << "Output: " << pos.x << " " << pos.y << " " << pos.z
-           << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
+       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
+           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
      
        return ret;
     }

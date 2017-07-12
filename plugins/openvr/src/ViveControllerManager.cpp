@@ -397,64 +397,6 @@ void ViveControllerManager::InputDevice::emitCalibrationStatus(const bool succes
     emit inputConfiguration->calibrationStatus(status); //inputConfiguration->calibrated(status);
 }
   
-void ViveControllerManager::InputDevice::BuildHighVelocityFilter(){
-
-    _poseFilterSize = 100;
-    if (_highVelocityFilter.size() == 0) {
-        _highVelocityFilter.resize(_poseFilterSize);
-    }
-
-    _poseFilterCount = 0;
-}
-
-void ViveControllerManager::InputDevice::HighVelocityFilter(uint32_t deviceIndex){
-
-    mat4 &mat = mat4();
-    vec3 linearVelocity = vec3();
-    vec3 angularVelocity = vec3();
-
-    if (_nextSimPoseData.vrPoses[deviceIndex].eTrackingResult != vr::TrackingResult_Running_OutOfRange) {
-        mat = _nextSimPoseData.poses[deviceIndex];
-        linearVelocity = _nextSimPoseData.linearVelocities[deviceIndex];
-        angularVelocity = _nextSimPoseData.angularVelocities[deviceIndex];
-    }
-
-    _poseFilterCount++;
-    if (_poseFilterCount == _poseFilterSize) {
-        // pop last value out 
-        if (_nextSimPoseData.vrPoses[deviceIndex].eTrackingResult != vr::TrackingResult_Running_OutOfRange) {
-            _nextSimPoseData.poses[deviceIndex] = _highVelocityFilter[_poseFilterSize - 1].poses[deviceIndex];
-        }
-        else {
-            _lastSimPoseData.poses[deviceIndex] = _highVelocityFilter[_poseFilterSize-1].poses[deviceIndex];
-        }
-        
-    }
-    else {
-        
-        // process data
-
-        processHighVelocityFilter();
-        
-        // shift other values right by 1 index
-        
-        for (uint32_t i = 0; i < _poseFilterCount - 1; i++){
-            _highVelocityFilter[i + 1].poses[deviceIndex] = _highVelocityFilter[i].poses[deviceIndex];
-        }
-        // add new value at front of list
-        _highVelocityFilter[0].poses[deviceIndex] = mat;
-    }
-
-}
-
-
-void ViveControllerManager::InputDevice::processHighVelocityFilter(){
-
-
-
-
-
-}
 
 void ViveControllerManager::InputDevice::handleTrackedObject(uint32_t deviceIndex, const controller::InputCalibrationData& inputCalibrationData) {
     uint32_t poseIndex = controller::TRACKED_OBJECT_00 + deviceIndex;
