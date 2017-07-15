@@ -31,7 +31,7 @@ public:
     float getAverage() const { return _average; };
     float getEventDeltaAverage() const; // returned in seconds
     float getAverageSampleValuePerSecond() const { return _average * (1.0f / getEventDeltaAverage()); }
-
+   
     uint64_t getUsecsSinceLastEvent() const;
 
 
@@ -62,6 +62,7 @@ public:
     const float ONE_MINUS_WEIGHTING = 1.0f - WEIGHTING;
     std::atomic<int> numSamples{ 0 };
     std::atomic<T> average;
+
 
     void clear() {
         numSamples = 0;
@@ -111,8 +112,13 @@ public:
         return _samples;
     }
 
+    void setWeight(const float &weight) { 
+        std::unique_lock<std::mutex> lock(_lock);
+        WEIGHTING = weight;
+    }
+
 private:
-    const float WEIGHTING = 1.0f / (float)MAX_NUM_SAMPLES;
+    float WEIGHTING = 1.0f / (float)MAX_NUM_SAMPLES;
     const float ONE_MINUS_WEIGHTING = 1.0f - WEIGHTING;
     size_t _samples { 0 };
     T _average;

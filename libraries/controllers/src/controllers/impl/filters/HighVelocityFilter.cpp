@@ -7,7 +7,7 @@
 //
 
 #include "HighVelocityFilter.h"
-#include <SimpleMovingAverage.h>
+
 
 
 namespace controller {
@@ -21,6 +21,9 @@ namespace controller {
         _pWeight = 0.0f;
         _qWeight = 0.0f;
         _posOutput.clear();
+        _pMvAvg.setWeight(_pWeight);
+        _qMvAvg.setWeight(_qWeight);
+        _ringIndex = 0;
 
         //qDebug() << " N = " << _posOutput.size();
 
@@ -58,17 +61,65 @@ namespace controller {
 
     }
 
+    glm::vec3 HighVelocityFilter::ringBufferManager(const glm::vec3 &v, const size_t &size) const {
+        
+        size_t len = _posRingBuffer.size();
+        glm::vec3 ret;
+
+        if (len < size) {
+            _posRingBuffer.push_back(v);
+        }
+        else {
+            ret = _posRingBuffer[_ringIndex];
+            _posRingBuffer[_ringIndex] = v;
+            _ringIndex++;
+            _ringIndex = _ringIndex % size;
+        }
+
+        return ret;
+    }
+
+    glm::quat HighVelocityFilter::ringBufferManager(const glm::quat &q, const size_t &size) const {
+
+        size_t len = _rotRingBuffer.size();
+        glm::quat ret;
+
+        if (len < size) {
+            _rotRingBuffer.push_back(q);
+        }
+        else {
+            ret = _rotRingBuffer[_ringIndex];
+            _rotRingBuffer[_ringIndex] = q;
+            _ringIndex++;
+            _ringIndex = _ringIndex % size;
+        }
+
+        return ret;
+    }
+
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
         //glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
         //glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        vec3 pos = newPose.getTranslation();
-        quat rot = newPose.getRotation();
+        glm::vec3 pos = newPose.getTranslation();
+        glm::quat rot = newPose.getRotation();
+        glm::vec3 vTmp;
+        glm::quat qTmp;
+
+        if (glm::dot(pos, pos) != 0) {
+            vTmp = ringBufferManager(pos, _ringSize);
+            qTmp = ringBufferManager(rot, _ringSize);
+
+            qDebug() << "Input: " << _ringSize << vTmp.x << " " << vTmp.y << " " << vTmp.z
+                << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
+        }
+        
+       // quat rot = newPose.getRotation();
        
-        qDebug() << "Input: " << pos.x << " " << pos.y << " " << pos.z
-            << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
+       // qDebug() << "Input: " << pos.x << " " << pos.y << " " << pos.z
+       //     << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
   
         //size_t N = _posOutput.size();
 
@@ -113,23 +164,29 @@ namespace controller {
       
         // set up output
 
-        glm::vec3 pOut = updatePosOut(pos);
+        //glm::vec3 pOut = updatePosOut(pos);
         //qDebug() << "N = " << N << " pOut  = " << glm::to_string(pOut).c_str();
 
-        glm::quat qOut = updateRotOut(rot);
+        //glm::quat qOut = updateRotOut(rot);
 
         
        //Pose ret = DataToPose(pOut, qOut);
 
-        Pose ret = newPose;
+       // glm::vec3 pos = newPose.getTranslation();
+       // glm::quat rot = newPose.getRotation();
+
+        Pose ret;
+
+        ret.translation = vTmp;
+        ret.rotation = qTmp;
 
 
         // print output values
 
-       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
-           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
+//       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
+//           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
      
-       return ret;
+       return newPose;
     }
 
 
@@ -182,10 +239,8 @@ namespace controller {
         glm::quat qtmp = q;
         qtmp = qFlipHemi(qtmp);
 
-        ThreadSafeMovingAverage<glm::quat, 2> mvAvg;
-
-        mvAvg.addSample(qtmp);
-        glm::quat avg = mvAvg.getAverage();
+        _qMvAvg.addSample(qtmp);
+        glm::quat avg = _qMvAvg.getAverage();
         glm::quat qI = glm::inverse(avg);
         glm::quat ret = qtmp * qI;
         ret = glm::normalize(ret);
@@ -238,8 +293,8 @@ namespace controller {
         int indx = 0;
 
         for (int i = 0; i < 3; i++) {
-            if (fabsf(v[i]) > max) {
-                max = fabsf(v[i]);
+            if (std::fabsf(v[i]) > max) {
+                max = std::fabsf(v[i]);
                 indx = i;
             }
         }
@@ -254,7 +309,7 @@ namespace controller {
         float s = sinf(psi / 2.0);
 
         if (s == 0) {
-            if (fabsf(std::fmodf(psi, (float)M_PI)) < 1e-6){
+            if (std::fabsf(std::fmodf(psi, (float)M_PI)) < 1e-6){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;

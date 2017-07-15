@@ -17,7 +17,8 @@
 #include <QtCore/QDebug>
 #include <vector>
 #include <glm/gtx/string_cast.hpp>
-#include <cmath>
+#include <math.h>
+#include <SimpleMovingAverage.h>
 
 static const QString JSON_P_THRESHOLD = QStringLiteral("p_threshold");
 static const QString JSON_Q_THRESHOLD = QStringLiteral("q_threshold");
@@ -25,9 +26,8 @@ static const QString JSON_SIZE = QStringLiteral("size");
 static const QString JSON_P_WEIGHT = QStringLiteral("p_weight");
 static const QString JSON_Q_WEIGHT = QStringLiteral("q_weight");
 
-
 namespace controller {
-
+      
     class HighVelocityFilter : public Filter {
     REGISTER_FILTER_CLASS(HighVelocityFilter);
            
@@ -62,16 +62,24 @@ namespace controller {
                 glm::vec3 updatePosOut(glm::vec3 v) const;
                 glm::quat updateRotOut(glm::quat q) const;
                 Pose DataToPose(glm::vec3 pos, glm::quat rot) const;
+                glm::vec3 ringBufferManager(const glm::vec3 &v,const size_t &size) const;
+                glm::quat ringBufferManager(const glm::quat &q, const size_t &size) const;
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
+                mutable std::vector<glm::vec3> _posRingBuffer;
+                mutable std::vector<glm::quat> _rotRingBuffer;
+                const size_t _ringSize{ 5 };
+                mutable size_t _ringIndex{ 0 };
                 float _pThresh{ 0.5f };
                 size_t _n{ 0 };
                 mutable int _pCount { 0 };
                 mutable int _qCount{ 0 };
                 float _qThresh { 0.5f };
-                int _pWeight{ 2 };
-                int _qWeight{ 2 };
+                mutable int _pWeight{ 2 };
+                mutable int _qWeight{ 2 };
                 mutable glm::quat _qRef;
+                mutable ThreadSafeMovingAverage<glm::quat, 2> _pMvAvg;
+                mutable ThreadSafeMovingAverage<glm::quat, 2> _qMvAvg;
     };
 
 }
