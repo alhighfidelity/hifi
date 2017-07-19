@@ -23,7 +23,11 @@ namespace controller {
         _posOutput.clear();
         _pMvAvg.setWeight(_pWeight);
         _qMvAvg.setWeight(_qWeight);
-        _ringIndex = 0;
+        _posRingIndex = 0;
+        _rotRingIndex = 0;
+        _magRingIndex = 0;
+        _currTime = std::clock();
+        _numberSamples = 0;
 
         //qDebug() << " N = " << _posOutput.size();
 
@@ -64,17 +68,23 @@ namespace controller {
     glm::vec3 HighVelocityFilter::ringBufferManager(const glm::vec3 &v, const size_t &size) const {
         
         size_t len = _posRingBuffer.size();
-        glm::vec3 ret;
+        glm::vec3 ret = { 0.0f, 0.0f, 0.0f };
 
-        if (len < size) {
+        if (len < size + 1) {
             _posRingBuffer.push_back(v);
         }
         else {
-            ret = _posRingBuffer[_ringIndex];
-            _posRingBuffer[_ringIndex] = v;
-            _ringIndex++;
-            _ringIndex = _ringIndex % size;
+            ret = _posRingBuffer[_posRingIndex];
+            _posRingBuffer[_posRingIndex] = v;
+            _posRingIndex++;
+            _posRingIndex = _posRingIndex % size;
         }
+
+        // write out buffer
+        /* qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex;
+        for (int i = 0; i < len; i++) {
+            qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+        } */
 
         return ret;
     }
@@ -82,38 +92,122 @@ namespace controller {
     glm::quat HighVelocityFilter::ringBufferManager(const glm::quat &q, const size_t &size) const {
 
         size_t len = _rotRingBuffer.size();
-        glm::quat ret;
+        glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-        if (len < size) {
+        if (len < size + 1) {
             _rotRingBuffer.push_back(q);
         }
         else {
-            ret = _rotRingBuffer[_ringIndex];
-            _rotRingBuffer[_ringIndex] = q;
-            _ringIndex++;
-            _ringIndex = _ringIndex % size;
+            ret = _rotRingBuffer[_rotRingIndex];
+            _rotRingBuffer[_rotRingIndex] = q;
+            _rotRingIndex++;
+            _rotRingIndex = _rotRingIndex % size;
         }
 
         return ret;
     }
 
+    float HighVelocityFilter::ringBufferManager(const float &mag, const size_t &size) const {
+
+        size_t len = _magRingBuffer.size();
+        float ret = 0.0f;
+
+        if (len < size + 1) {
+            _magRingBuffer.push_back(mag);
+        }
+        else {
+            ret = _magRingBuffer[_magRingIndex];
+            _magRingBuffer[_magRingIndex] = mag;
+            _magRingIndex++;
+            _magRingIndex = _magRingIndex % size;
+        }
+        
+        // write out buffer
+        /*qDebug() << " Mag Buffer: _ringIndex = " << _magRingIndex;
+        for (int i = 0; i < len; i++) {
+            qDebug() << i << "\t" << _magRingBuffer[i];
+        } */
+
+
+        return ret;
+
+    }
+
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
-        //glm::vec3 vTest = { 1.0f, 1.0f, 1.0f };
-        //glm::quat qTest = { 1.0f, 1.0f, 1.0f, 1.0f };
+        clock_t tmp = std::clock();
+        _deltaTime = (tmp - _currTime)*1.0e-2;
+        _currTime = tmp;
 
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
-        glm::vec3 vTmp;
-        glm::quat qTmp;
+     
+        Pose ret;
+
+        ret.translation = pos;
+        ret.rotation = rot;
 
         if (glm::dot(pos, pos) != 0) {
-            vTmp = ringBufferManager(pos, _ringSize);
-            qTmp = ringBufferManager(rot, _ringSize);
+            //_pMvAvg.addSample(pos);
+            //glm::vec3 avg = _pMvAvg.getAverage();
 
-            qDebug() << "Input: " << _ringSize << vTmp.x << " " << vTmp.y << " " << vTmp.z
-                << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
+            float weight = 1.0f /(float) _pWeight;
+
+            if (_numberSamples == 0) {
+                _posAvg = { 0.0f, 0.0f, 0.0f };
+            }
+            else {
+                _posAvg = pos * weight + (1.0f - weight)*_posAvg;
+            }
+   
+            glm::vec3 avg = _posAvg;
+
+            glm::vec3 dv = pos - avg;
+            float dvMag = sqrtf(glm::dot(dv, dv));
+            float dvTmp1 = ringBufferManager(dvMag, _ringSize);
+            glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
+
+            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << dvTmp1;
+            _numberSamples++;
+
+          /* if (_numberSamples > _pSamples){
+                glm::vec3 dv = pos - avg;
+                glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
+                float dvMag = sqrtf(glm::dot(dv, dv));
+                float dvTmp1 = ringBufferManager(dvMag, _ringSize);
+                float dvTmp2 = _magRingBuffer[0];
+                float d_a = fabsf(dvTmp1 - dvTmp2)/_deltaTime;
+                glm::quat qTmp = ringBufferManager(rot, _ringSize);
+                 
+                if (d_a > _pThresh) {
+                     
+                    size_t n = _posRingBuffer.size();
+                    if (n - 1 >= 0) {
+                        glm::vec3 vTmp = _posRingBuffer[n - 1];
+                    }
+
+                    for (int i = 1; i < n; i++) {
+                        _posRingBuffer[i] = vTmp;
+                    }
+
+                    ThreadSafeMovingAverage<glm::vec3, 2> pMvAvg;
+                    pMvAvg.addSample(_posRingBuffer[0]);
+
+                    for (int i = 1; i < n; i++) {
+                        pMvAvg.addSample(_posRingBuffer[i]);
+                        _posRingBuffer[i] = pMvAvg.getAverage();
+                    }
+                }
+                 
+                vTmp = _posRingBuffer[0];
+                //qTmp = _rotRingBuffer[0];
+                ret.translation = vTmp;
+                ret.rotation = qTmp;
+
+                
+                        
+             } */
         }
         
        // quat rot = newPose.getRotation();
@@ -175,10 +269,9 @@ namespace controller {
        // glm::vec3 pos = newPose.getTranslation();
        // glm::quat rot = newPose.getRotation();
 
-        Pose ret;
+       
 
-        ret.translation = vTmp;
-        ret.rotation = qTmp;
+       
 
 
         // print output values
@@ -186,7 +279,7 @@ namespace controller {
 //       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
 //           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
      
-       return newPose;
+       return ret;
     }
 
 
@@ -520,12 +613,13 @@ namespace controller {
         if (parameters.isObject()) {
             auto obj = parameters.toObject();
             if (obj.contains(JSON_P_THRESHOLD) && obj.contains(JSON_Q_THRESHOLD) && obj.contains(JSON_SIZE) && 
-                obj.contains(JSON_P_WEIGHT) && obj.contains(JSON_Q_WEIGHT)) {
+                obj.contains(JSON_P_WEIGHT) && obj.contains(JSON_Q_WEIGHT) && obj.contains(JSON_P_SAMPLES)) {
                 _pThresh = obj[JSON_P_THRESHOLD].toDouble();
                 _pWeight = obj[JSON_P_WEIGHT].toDouble();
                 _n = obj[JSON_SIZE].toInt();
                 _qThresh = obj[JSON_Q_THRESHOLD].toInt();
                 _qWeight = obj[JSON_Q_WEIGHT].toInt();
+                _pSamples = obj[JSON_P_SAMPLES].toInt();
                 return true;
             }
         }

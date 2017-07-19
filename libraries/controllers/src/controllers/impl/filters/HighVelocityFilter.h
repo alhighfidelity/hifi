@@ -19,12 +19,15 @@
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
 #include <SimpleMovingAverage.h>
+#include <chrono>
+#include <ctime>
 
 static const QString JSON_P_THRESHOLD = QStringLiteral("p_threshold");
 static const QString JSON_Q_THRESHOLD = QStringLiteral("q_threshold");
 static const QString JSON_SIZE = QStringLiteral("size");
 static const QString JSON_P_WEIGHT = QStringLiteral("p_weight");
 static const QString JSON_Q_WEIGHT = QStringLiteral("q_weight");
+static const QString JSON_P_SAMPLES = QStringLiteral("p_samples");
 
 namespace controller {
       
@@ -64,12 +67,16 @@ namespace controller {
                 Pose DataToPose(glm::vec3 pos, glm::quat rot) const;
                 glm::vec3 ringBufferManager(const glm::vec3 &v,const size_t &size) const;
                 glm::quat ringBufferManager(const glm::quat &q, const size_t &size) const;
+                float ringBufferManager(const float &mag, const size_t &size) const;
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
                 mutable std::vector<glm::vec3> _posRingBuffer;
                 mutable std::vector<glm::quat> _rotRingBuffer;
+                mutable std::vector<float> _magRingBuffer;
                 const size_t _ringSize{ 5 };
-                mutable size_t _ringIndex{ 0 };
+                mutable size_t _posRingIndex{ 0 };
+                mutable size_t _rotRingIndex{ 0 };
+                mutable size_t _magRingIndex{ 0 };
                 float _pThresh{ 0.5f };
                 size_t _n{ 0 };
                 mutable int _pCount { 0 };
@@ -78,8 +85,14 @@ namespace controller {
                 mutable int _pWeight{ 2 };
                 mutable int _qWeight{ 2 };
                 mutable glm::quat _qRef;
-                mutable ThreadSafeMovingAverage<glm::quat, 2> _pMvAvg;
+                mutable ThreadSafeMovingAverage<glm::vec3, 2> _pMvAvg;
                 mutable ThreadSafeMovingAverage<glm::quat, 2> _qMvAvg;
+                mutable float _deltaTime;
+                mutable clock_t _currTime;
+                mutable uint _numberSamples;
+                mutable uint _pSamples;
+                mutable glm::vec3 _posAvg;
+
     };
 
 }
