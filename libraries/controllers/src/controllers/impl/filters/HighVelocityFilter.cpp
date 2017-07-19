@@ -149,9 +149,7 @@ namespace controller {
         ret.rotation = rot;
 
         if (glm::dot(pos, pos) != 0) {
-            //_pMvAvg.addSample(pos);
-            //glm::vec3 avg = _pMvAvg.getAverage();
-
+            
             float weight = 1.0f /(float) _pWeight;
 
             if (_numberSamples == 0) {
@@ -165,11 +163,45 @@ namespace controller {
 
             glm::vec3 dv = pos - avg;
             float dvMag = sqrtf(glm::dot(dv, dv));
-            float dvTmp1 = ringBufferManager(dvMag, _ringSize);
+            float signal = ringBufferManager(dvMag, _ringSize);
             glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
 
-            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << dvTmp1;
+            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << signal;
             _numberSamples++;
+
+            size_t index = 0;
+
+            if (signal > _pThresh) {
+                if (_posRingIndex != 0){
+                    index = _posRingIndex - 1;
+                }
+                else {
+                    index = _posRingIndex;
+                }
+                vTmp = _posRingBuffer[index];
+
+                // write out buffer
+                qDebug() << " Load Position Buffer ";
+
+                for (int i = 1; i < _ringSize + 1; i++) {
+                    size_t inc = i%_ringSize;
+                    if (inc == 0) {
+                        inc = -1;
+                    }
+                    index = _posRingIndex + inc;
+                    qDebug() << "index = " << index;
+                    _posRingBuffer[index] = vTmp;
+                }
+
+                // write out buffer
+                qDebug() << " Pos Buffer: _ringIndex = " << _posRingIndex;
+                size_t len = _posRingBuffer.size();
+                for (int i = 0; i < len; i++) {
+                    qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                } 
+            }
+
+
 
           /* if (_numberSamples > _pSamples){
                 glm::vec3 dv = pos - avg;
