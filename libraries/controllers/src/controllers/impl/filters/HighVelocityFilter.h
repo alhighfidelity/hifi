@@ -73,10 +73,11 @@ namespace controller {
                 mutable std::vector<glm::vec3> _posRingBuffer;
                 mutable std::vector<glm::quat> _rotRingBuffer;
                 mutable std::vector<float> _magRingBuffer;
-                const size_t _ringSize{ 5 };
-                mutable size_t _posRingIndex{ 0 };
-                mutable size_t _rotRingIndex{ 0 };
-                mutable size_t _magRingIndex{ 0 };
+                const size_t _ringSize{ 11 };
+                mutable size_t _ringBack{ 5 };
+                mutable size_t _posRingIndex{ 5 };
+                mutable size_t _rotRingIndex{ 5 };
+                mutable size_t _magRingIndex{ 5 };
                 float _pThresh{ 0.5f };
                 size_t _n{ 0 };
                 mutable int _pCount { 0 };

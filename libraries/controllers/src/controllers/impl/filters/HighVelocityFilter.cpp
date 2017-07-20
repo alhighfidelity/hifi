@@ -26,6 +26,7 @@ namespace controller {
         _posRingIndex = 0;
         _rotRingIndex = 0;
         _magRingIndex = 0;
+        _ringBack = (_ringSize - 1) / 2;
         _currTime = std::clock();
         _numberSamples = 0;
 
@@ -70,21 +71,24 @@ namespace controller {
         size_t len = _posRingBuffer.size();
         glm::vec3 ret = { 0.0f, 0.0f, 0.0f };
 
-        if (len < size + 1) {
+        if (len < size ) {
             _posRingBuffer.push_back(v);
         }
         else {
-            ret = _posRingBuffer[_posRingIndex];
+            size_t index = (_posRingIndex + _ringBack) % size;
+            ret = _posRingBuffer[index];
             _posRingBuffer[_posRingIndex] = v;
             _posRingIndex++;
             _posRingIndex = _posRingIndex % size;
         }
 
         // write out buffer
-        /* qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex;
-        for (int i = 0; i < len; i++) {
+        size_t len1 = _magRingBuffer.size();
+
+        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " length before = " << len << " length after = " << len1;
+        for (int i = 0; i < len1; i++) {
             qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
-        } */
+        } 
 
         return ret;
     }
@@ -94,7 +98,7 @@ namespace controller {
         size_t len = _rotRingBuffer.size();
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-        if (len < size + 1) {
+        if (len < size ) {
             _rotRingBuffer.push_back(q);
         }
         else {
@@ -112,22 +116,24 @@ namespace controller {
         size_t len = _magRingBuffer.size();
         float ret = 0.0f;
 
-        if (len < size + 1) {
+        if (len < size) {
             _magRingBuffer.push_back(mag);
         }
         else {
-            ret = _magRingBuffer[_magRingIndex];
+            size_t index = (_magRingIndex + _ringBack) % size;
+            ret = _magRingBuffer[index];
             _magRingBuffer[_magRingIndex] = mag;
             _magRingIndex++;
             _magRingIndex = _magRingIndex % size;
         }
         
         // write out buffer
-        /*qDebug() << " Mag Buffer: _ringIndex = " << _magRingIndex;
-        for (int i = 0; i < len; i++) {
-            qDebug() << i << "\t" << _magRingBuffer[i];
-        } */
 
+        size_t len1 = _magRingBuffer.size();
+        qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " length before = " << len << " length after = " << len1;
+        for (int i = 0; i < len1; i++) {
+            qDebug() << i << "\t" << _magRingBuffer[i];
+        } 
 
         return ret;
 
@@ -143,10 +149,10 @@ namespace controller {
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
      
-        Pose ret;
+        //Pose ret;
 
-        ret.translation = pos;
-        ret.rotation = rot;
+        //ret.translation = pos;
+        //ret.rotation = rot;
 
         if (glm::dot(pos, pos) != 0) {
             
@@ -166,39 +172,47 @@ namespace controller {
             float signal = ringBufferManager(dvMag, _ringSize);
             glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
 
-            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << signal;
             _numberSamples++;
+            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << "Signal: " << signal << " threshold: " << _pThresh <<"_numberSamples: " << _numberSamples
+                     << "_pSamples: " << _pSamples;
+            
+            if (_numberSamples > _pSamples){
+                size_t index = 0;
 
-            size_t index = 0;
-
-            if (signal > _pThresh) {
-                if (_posRingIndex != 0){
-                    index = _posRingIndex - 1;
-                }
-                else {
+                if (signal > _pThresh) {
+                    
                     index = _posRingIndex;
-                }
-                vTmp = _posRingBuffer[index];
+                    glm::vec3 begin = _posRingBuffer[index];  // first
+                    index = (_posRingIndex - 1) % _ringSize;
+                    glm::vec3 end = _posRingBuffer[index]; // last
 
-                // write out buffer
-                qDebug() << " Load Position Buffer ";
+                    // write out buffer
+                    qDebug() << " Load Position Buffer ";
 
-                for (int i = 1; i < _ringSize + 1; i++) {
-                    size_t inc = i%_ringSize;
-                    if (inc == 0) {
-                        inc = -1;
+                    // write out buffer before
+                    qDebug() << " Pos Buffer Before: _ringIndex = " << _posRingIndex;
+                    size_t len = _posRingBuffer.size();
+                    for (int i = 0; i < len; i++) {
+                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
-                    index = _posRingIndex + inc;
-                    qDebug() << "index = " << index;
-                    _posRingBuffer[index] = vTmp;
-                }
 
-                // write out buffer
-                qDebug() << " Pos Buffer: _ringIndex = " << _posRingIndex;
-                size_t len = _posRingBuffer.size();
-                for (int i = 0; i < len; i++) {
-                    qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
-                } 
+                    _posRingBuffer[_posRingIndex] = begin;
+                    size_t start = (_posRingIndex + 1)%_ringSize;
+
+                     
+                    for (size_t i = start; i < start + _ringSize - 1; i++) {
+                        index = i%_ringSize;
+                        qDebug() << "index = " << index;
+                        _posRingBuffer[index] = end;
+                    }
+
+                    // write out buffer after
+                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
+                    len = _posRingBuffer.size();
+                    for (int i = 0; i < len; i++) {
+                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                    }
+                }
             }
 
 
@@ -311,7 +325,7 @@ namespace controller {
 //       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
 //           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
      
-       return ret;
+       return newPose;
     }
 
 
