@@ -185,6 +185,7 @@ namespace controller {
             float dvMag = sqrtf(glm::dot(dv, dv));
             float signal = ringBufferManager(dvMag, _ringSize);
             glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
+            glm::quat qTmp = ringBufferManager(rot, _ringSize);
 
             _numberSamples++;
 
@@ -261,12 +262,18 @@ namespace controller {
                         _magRingBuffer[index] = 0.0f;
                     }
 
-                    
+                    len = _posRingBuffer.size();
+                    glm::vec3 tmp = _posRingBuffer[len-1];
+                    len = _rotRingBuffer.size();
+                    glm::quat q_tmp = _rotRingBuffer[len-1];
+
                     for (size_t i = 0; i < _ringSize; i++) {
-                        glm::vec3 tmp = { 0.0f, 0.0f, 0.0f };
                         glm::vec3 vTmp = ringBufferManager(tmp, _ringSize);
                         std::vector<glm::vec3>::iterator it = _posBuffer.begin();
                         _posBuffer.insert(it, vTmp);
+                        glm::quat qTmp = ringBufferManager(q_tmp, _ringSize);
+                        std::vector<glm::quat>::iterator it1 = _rotBuffer.begin();
+                        _rotBuffer.insert(it1, qTmp);
                     }
 
                     // #if WANT_DEBUG
@@ -294,10 +301,11 @@ namespace controller {
 
                 index = (_posRingIndex + _ringBack) % _ringSize;
                 glm::vec3 vTmp = _posRingBuffer[index];
+                glm::quat qTmp = _rotRingBuffer[index];
                 index = (_magRingIndex + _ringBack) % _ringSize;
                 signal = _magRingBuffer[index];
                 ret.translation = vTmp;
-                ret.rotation = rot;
+                ret.rotation = qTmp;
 
                 #if WANT_DEBUG
                 qDebug() << " Output: " << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t"
@@ -315,6 +323,15 @@ namespace controller {
         }
         else {
             ret.translation = { 0.0f, 0.0f, 0.0f };
+        }
+
+        len = _rotBuffer.size();
+        if (len > 0) {
+            ret.rotation = _rotBuffer[len-1];
+            _rotBuffer.pop_back();
+        }
+        else {
+            ret.rotation = { 0.0f, 0.0f, 0.0f, 0.0f };
         }
 
         glm::vec3 vTmp = ret.getTranslation();
