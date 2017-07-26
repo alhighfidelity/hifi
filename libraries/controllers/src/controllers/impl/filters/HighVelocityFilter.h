@@ -38,6 +38,7 @@ namespace controller {
             HighVelocityFilter();
             HighVelocityFilter(float pThreshold, int pWeight, float qThreshold, int qWeight, int size);
             HighVelocityFilter(const HighVelocityFilter &other);
+            ~HighVelocityFilter();
             
             virtual float apply(float value) const override { return value; }
             virtual Pose apply(Pose newPose) const override;

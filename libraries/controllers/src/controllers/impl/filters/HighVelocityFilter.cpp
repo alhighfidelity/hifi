@@ -66,6 +66,15 @@ namespace controller {
 
     }
 
+    HighVelocityFilter::~HighVelocityFilter() {
+        _magRingBuffer.clear();
+        _
+
+    
+    
+    }
+
+
     glm::vec3 HighVelocityFilter::ringBufferManager(const glm::vec3 &v, const size_t &size) const {
     
         size_t len = _posRingBuffer.size();
@@ -191,7 +200,9 @@ namespace controller {
 
            // #if WANT_DEBUG
             if (glm::dot(vTmp, vTmp) != 0.0f) {
-                qDebug() << " Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << endl;    // " " << signal << endl;
+                qDebug() << " Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
+                    << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
+                     // " " << signal << endl;
                 //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
                 // #endif
             }
@@ -214,7 +225,7 @@ namespace controller {
                     // write out buffer before
                     qDebug() << " Pos Buffer Before: _ringIndex = " << _posRingIndex << endl;
                     size_t len = _posRingBuffer.size();
-                    for (int i = 0; i < len; i++) {
+                    for (size_t i = 0; i < len; i++) {
                         qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
                     }
                     // #endif
@@ -236,7 +247,7 @@ namespace controller {
                     // write out buffer after
                     qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
                     len = _posRingBuffer.size();
-                    for (int i = 0; i < len; i++) {
+                    for (size_t i = 0; i < len; i++) {
                         qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
 
@@ -280,7 +291,7 @@ namespace controller {
                     // write out buffer after
                     qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex << endl;
                     len = _posRingBuffer.size();
-                    for (int i = 0; i < len; i++) {
+                    for (size_t i = 0; i < len; i++) {
                         qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
                     
@@ -337,8 +348,7 @@ namespace controller {
         glm::vec3 vTmp = ret.getTranslation();
 
         if (glm::dot(vTmp, vTmp) != 0.0f) {
-            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " ";
-            //<< "\t" << "Rotation: " << rot.w << "\t " << rot.x << "\t " << rot.y << "\t " << rot.z;
+            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
         }
 
         return ret;
