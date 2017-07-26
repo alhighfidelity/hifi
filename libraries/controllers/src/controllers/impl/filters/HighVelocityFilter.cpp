@@ -68,10 +68,8 @@ namespace controller {
 
     HighVelocityFilter::~HighVelocityFilter() {
         _magRingBuffer.clear();
-        _
-
-    
-    
+        _posRingBuffer.clear();
+        _rotRingBuffer.clear();
     }
 
 
@@ -173,6 +171,18 @@ namespace controller {
 
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
+
+        // #if WANT_DEBUG
+        if (glm::dot(pos, pos) != 0.0f) {
+            qDebug() << " Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
+                << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
+            // " " << signal << endl;
+            //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
+            // #endif
+        }
+
+
+        return newPose;
 
         ret.translation = pos;
         ret.rotation = rot;
