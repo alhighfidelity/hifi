@@ -67,11 +67,11 @@ namespace controller {
     }
 
     glm::vec3 HighVelocityFilter::ringBufferManager(const glm::vec3 &v, const size_t &size) const {
-        
+    
         size_t len = _posRingBuffer.size();
         glm::vec3 ret = { 0.0f, 0.0f, 0.0f };
 
-        if (len < size ) {
+        if (len < size) {
             _posRingBuffer.push_back(v);
         }
         else {
@@ -82,23 +82,28 @@ namespace controller {
             _posRingIndex = _posRingIndex % size;
         }
 
-        // write out buffer
+       
+        #if WANT_DEBUG
+
         size_t len1 = _magRingBuffer.size();
 
-        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " length before = " << len << " length after = " << len1;
+        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " length before = " << len << " length after = " << len1 << endl;
         for (int i = 0; i < len1; i++) {
-            qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
-        } 
+            qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
+        }
+
+        #endif
 
         return ret;
-    }
+}
+       
 
     glm::quat HighVelocityFilter::ringBufferManager(const glm::quat &q, const size_t &size) const {
 
         size_t len = _rotRingBuffer.size();
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-        if (len < size ) {
+        if (len < size) {
             _rotRingBuffer.push_back(q);
         }
         else {
@@ -108,8 +113,19 @@ namespace controller {
             _rotRingIndex = _rotRingIndex % size;
         }
 
+        #if WANT_DEBUG
+        // write out buffer
+        size_t len1 = _rotRingBuffer.size();
+        qDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " length before = " << len << " length after = " << len1 << endl;
+        for (int i = 0; i < len1; i++) {
+            qDebug() << i << "\t" << _rotRingBuffer[i] << endl;
+        }
+        #endif
+
+
         return ret;
     }
+
 
     float HighVelocityFilter::ringBufferManager(const float &mag, const size_t &size) const {
 
@@ -126,37 +142,35 @@ namespace controller {
             _magRingIndex++;
             _magRingIndex = _magRingIndex % size;
         }
-        
-        // write out buffer
 
-        size_t len1 = _magRingBuffer.size();
-        qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " length before = " << len << " length after = " << len1;
-        for (int i = 0; i < len1; i++) {
-            qDebug() << i << "\t" << _magRingBuffer[i];
-        } 
+       
+        
+        #if WANT_DEBUG
+        // write out buffer
+            size_t len1 = _magRingBuffer.size();
+            qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " length before = " << len << " length after = " << len1 << endl;
+            for (int i = 0; i < len1; i++) {
+                qDebug() << i << "\t" << _magRingBuffer[i] << endl;
+            }
+        #endif
 
         return ret;
-
     }
 
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
 
-        clock_t tmp = std::clock();
-        _deltaTime = (tmp - _currTime)*1.0e-2;
-        _currTime = tmp;
+        Pose ret;
 
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
-     
-        //Pose ret;
 
-        //ret.translation = pos;
-        //ret.rotation = rot;
+        ret.translation = pos;
+        ret.rotation = rot;
 
         if (glm::dot(pos, pos) != 0) {
-            
-            float weight = 1.0f /(float) _pWeight;
+
+            float weight = 1.0f / (float)_pWeight;
 
             if (_numberSamples == 0) {
                 _posAvg = { 0.0f, 0.0f, 0.0f };
@@ -164,7 +178,7 @@ namespace controller {
             else {
                 _posAvg = pos * weight + (1.0f - weight)*_posAvg;
             }
-   
+
             glm::vec3 avg = _posAvg;
 
             glm::vec3 dv = pos - avg;
@@ -173,176 +187,145 @@ namespace controller {
             glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
 
             _numberSamples++;
-            qDebug() << " Input: " << "\t" << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t" << "Signal: " << signal << " threshold: " << _pThresh <<"_numberSamples: " << _numberSamples
-                     << "_pSamples: " << _pSamples;
-            
+
+           // #if WANT_DEBUG
+            if (glm::dot(vTmp, vTmp) != 0.0f) {
+                qDebug() << " Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << endl;    // " " << signal << endl;
+                //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
+                // #endif
+            }
+
             if (_numberSamples > _pSamples){
                 size_t index = 0;
 
                 if (signal > _pThresh) {
-                    
+
                     index = _posRingIndex;
                     glm::vec3 begin = _posRingBuffer[index];  // first
                     index = (_posRingIndex - 1) % _ringSize;
                     glm::vec3 end = _posRingBuffer[index]; // last
 
                     // write out buffer
-                    qDebug() << " Load Position Buffer ";
 
+                    // #if WANT_DEBUG
+                    qDebug() << " Load Position Buffer " << endl;
+                   
                     // write out buffer before
-                    qDebug() << " Pos Buffer Before: _ringIndex = " << _posRingIndex;
+                    qDebug() << " Pos Buffer Before: _ringIndex = " << _posRingIndex << endl;
                     size_t len = _posRingBuffer.size();
                     for (int i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
                     }
+                    // #endif
+
+                    // set up step in ring buffer
 
                     _posRingBuffer[_posRingIndex] = begin;
-                    size_t start = (_posRingIndex + 1)%_ringSize;
+                    size_t start = (_posRingIndex + 1) % _ringSize;
 
-                     
                     for (size_t i = start; i < start + _ringSize - 1; i++) {
                         index = i%_ringSize;
-                        qDebug() << "index = " << index;
+                        //#if WANT_DEBUG
+                        qDebug() << "index = " << index << endl;
+                        //#endif
                         _posRingBuffer[index] = end;
                     }
-
+                   
+                   // #if WANT_DEBUG
                     // write out buffer after
                     qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
                     len = _posRingBuffer.size();
                     for (int i = 0; i < len; i++) {
                         qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
+
+                   // #endif
+
+                    // average over step function
+
+                    avg = begin;
+
+                    for (size_t i = start; i < start + _ringSize - 1; i++) {
+                        index = i%_ringSize;
+                       // #if WANT_DEBUG
+                        qDebug() << "index = " << index << endl;
+                       // #endif
+                        avg = _posRingBuffer[index] * weight + (1.0f - weight)*avg;
+                        _posRingBuffer[index] = avg;
+                    }
+
+                    // clear signal buffer
+
+                    for (size_t i = 0; i < _ringSize; i++){
+                        index = i%_ringSize;
+                        _magRingBuffer[index] = 0.0f;
+                    }
+
+                    
+                    for (size_t i = 0; i < _ringSize; i++) {
+                        glm::vec3 tmp = { 0.0f, 0.0f, 0.0f };
+                        glm::vec3 vTmp = ringBufferManager(tmp, _ringSize);
+                        std::vector<glm::vec3>::iterator it = _posBuffer.begin();
+                        _posBuffer.insert(it, vTmp);
+                    }
+
+                    // #if WANT_DEBUG
+                    // write out buffer after
+                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex << endl;
+                    len = _posRingBuffer.size();
+                    for (int i = 0; i < len; i++) {
+                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                    }
+                    
+
+                    // write out buffer after
+                    qDebug() << " Mag Buffer After: _ringIndex = " << _magRingIndex << endl;
+
+                    len = _magRingBuffer.size();
+                    for (int i = 0; i < len; i++) {
+                        qDebug() << i << "\t" << _magRingBuffer[i] << endl;
+                    }
+                    // #endif
                 }
+                else {
+                    std::vector<glm::vec3>::iterator it = _posBuffer.begin();
+                    _posBuffer.insert(it, vTmp);
+                }
+
+                index = (_posRingIndex + _ringBack) % _ringSize;
+                glm::vec3 vTmp = _posRingBuffer[index];
+                index = (_magRingIndex + _ringBack) % _ringSize;
+                signal = _magRingBuffer[index];
+                ret.translation = vTmp;
+                ret.rotation = rot;
+
+                #if WANT_DEBUG
+                qDebug() << " Output: " << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t"
+                         << "\t" << "Rotation: " << rot.w << "\t "<< rot.x << "\t " << rot.y << "\t " << rot.z;
+                #endif
             }
 
-
-
-          /* if (_numberSamples > _pSamples){
-                glm::vec3 dv = pos - avg;
-                glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
-                float dvMag = sqrtf(glm::dot(dv, dv));
-                float dvTmp1 = ringBufferManager(dvMag, _ringSize);
-                float dvTmp2 = _magRingBuffer[0];
-                float d_a = fabsf(dvTmp1 - dvTmp2)/_deltaTime;
-                glm::quat qTmp = ringBufferManager(rot, _ringSize);
-                 
-                if (d_a > _pThresh) {
-                     
-                    size_t n = _posRingBuffer.size();
-                    if (n - 1 >= 0) {
-                        glm::vec3 vTmp = _posRingBuffer[n - 1];
-                    }
-
-                    for (int i = 1; i < n; i++) {
-                        _posRingBuffer[i] = vTmp;
-                    }
-
-                    ThreadSafeMovingAverage<glm::vec3, 2> pMvAvg;
-                    pMvAvg.addSample(_posRingBuffer[0]);
-
-                    for (int i = 1; i < n; i++) {
-                        pMvAvg.addSample(_posRingBuffer[i]);
-                        _posRingBuffer[i] = pMvAvg.getAverage();
-                    }
-                }
-                 
-                vTmp = _posRingBuffer[0];
-                //qTmp = _rotRingBuffer[0];
-                ret.translation = vTmp;
-                ret.rotation = qTmp;
-
-                
-                        
-             } */
         }
-        
-       // quat rot = newPose.getRotation();
-       
-       // qDebug() << "Input: " << pos.x << " " << pos.y << " " << pos.z
-       //     << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << endl;
-  
-        //size_t N = _posOutput.size();
-
-        // if ( N > 0) {
-
-            // print input parameters
-
-            //qDebug() << "parameters" << "\t" << "_pThresh = " << _pThresh << "\t" << "_pWeight = " << _pWeight;
 
 
-            // translation processing
+        size_t len = _posBuffer.size();
+        if (len > 0) {
+            ret.translation = _posBuffer[len - 1];
+            _posBuffer.pop_back();
+        }
+        else {
+            ret.translation = { 0.0f, 0.0f, 0.0f };
+        }
 
-            //glm::vec3 d_pos = diff(_posOutput[_pCount-1], pos);
-            //d_pos = abs(d_pos);
+        glm::vec3 vTmp = ret.getTranslation();
 
-            //glm::vec3 v1 = _posOutput[_pCount - 1];
-            //glm::vec3 v2 = pos;
-
-            //qDebug() << "pCount - 1 " << _pCount - 1 << " v1 = \t" << v1.x << "\t" << v1.y << "\t" << v1.z
-            //                          << "\t" << "v2 = " << v2.x << "\t" << v2.y << "\t" << v2.z
-            //                          << " d_pos: \t" << d_pos.x << "\t" << d_pos.y << "\t" << d_pos.z;
-           
-            //qDebug() << "d_pos_z\t" << d_pos.z;
-
-
-            // << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
-
-            //qDebug() << "HighVelocityFilter";
-            //qDebug() << "N = " << N << " d_pos  = " << glm::to_string(d_pos).c_str();
-            //qDebug() << " pos  = " << glm::to_string(pos).c_str() << "_posOutput[_pCount-1] = " << glm::to_string(_posOutput[_pCount - 1]).c_str()
-            //    << " rotation = " << glm::to_string(rot).c_str();
-           // pThreshold(d_pos,pos);
-
-           
-            // rotation processing
-
-            //glm::quat dQ = deltaQ(rot);
-            //float q_dot = qDot(_rotOutput[_pCount - 1], dQ);
-            //qThreshold(q_dot, _qThresh);
-
-        //}
-      
-        // set up output
-
-        //glm::vec3 pOut = updatePosOut(pos);
-        //qDebug() << "N = " << N << " pOut  = " << glm::to_string(pOut).c_str();
-
-        //glm::quat qOut = updateRotOut(rot);
-
-        
-       //Pose ret = DataToPose(pOut, qOut);
-
-       // glm::vec3 pos = newPose.getTranslation();
-       // glm::quat rot = newPose.getRotation();
-
-       
-
-       
-
-
-        // print output values
-
-//       qDebug() << "Output: " << pOut.x << " " << pOut.y << " " << pOut.z
-//           << " " << qOut.w << " " << qOut.x << " " << qOut.y << " " << qOut.z << endl;
-     
-       return newPose;
-    }
-
-
-    Pose HighVelocityFilter::DataToPose(glm::vec3 pos, glm::quat rot) const {
-
-        Pose ret;
-
-        // set position and rotation data
-
-        ret.translation = pos;
-        ret.rotation = rot;
+        if (glm::dot(vTmp, vTmp) != 0.0f) {
+            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " ";
+            //<< "\t" << "Rotation: " << rot.w << "\t " << rot.x << "\t " << rot.y << "\t " << rot.z;
+        }
 
         return ret;
     }
-
-
-
 
 
     glm::vec3 HighVelocityFilter::diff(glm::vec3 v1, glm::vec3 v2) const {
