@@ -55,6 +55,7 @@ class RouteBuilderProxy : public QObject {
         Q_INVOKABLE QObject* lowVelocity(float rotationConstant, float translationConstant);
         Q_INVOKABLE QObject* highVelocityFilter(float pThreshold, int pWeight, float qThreshold, int qWeight, int size);
 
+
     private:
         void to(const Endpoint::Pointer& destination);
         void conditional(const Conditional::Pointer& conditional);
