@@ -305,7 +305,7 @@ namespace controller {
                     qDebug() << " Mag Buffer After: _ringIndex = " << _magRingIndex << endl;
 
                     len = _magRingBuffer.size();
-                    for (int i = 0; i < len; i++) {
+                    for (size_t i = 0; i < len; i++) {
                         qDebug() << i << "\t" << _magRingBuffer[i] << endl;
                     }
                     // #endif
@@ -313,6 +313,8 @@ namespace controller {
                 else {
                     std::vector<glm::vec3>::iterator it = _posBuffer.begin();
                     _posBuffer.insert(it, vTmp);
+                    std::vector<glm::quat>::iterator it1 = _rotBuffer.begin();
+                    _rotBuffer.insert(it1, qTmp);
                 }
 
                 index = (_posRingIndex + _ringBack) % _ringSize;
@@ -461,7 +463,7 @@ namespace controller {
 
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
         float psi = 2.0*acosf(q.w);
-        float s = sinf(psi / 2.0);
+        float s = sinf(psi / 2.0f);
 
         if (s == 0) {
             if (std::fabsf(std::fmodf(psi, (float)M_PI)) < 1e-6){
