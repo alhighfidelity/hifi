@@ -172,17 +172,12 @@ namespace controller {
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
 
-        // #if WANT_DEBUG
+         #if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
             qDebug() << " Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
-            // " " << signal << endl;
-            //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
-            // #endif
         }
-
-
-        return newPose;
+        #endif
 
         ret.translation = pos;
         ret.rotation = rot;
@@ -356,9 +351,10 @@ namespace controller {
         }
 
         glm::vec3 vTmp = ret.getTranslation();
-
+        glm::quat qTmp = ret.getRotation();
+       
         if (glm::dot(vTmp, vTmp) != 0.0f) {
-            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
+            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
         }
 
         return ret;
