@@ -237,6 +237,10 @@ namespace controller {
 
                     // set up step in ring buffer
 
+                    // comment out for now
+
+                    #if FILTER_OFF
+
                     _posRingBuffer[_posRingIndex] = begin;
                     size_t start = (_posRingIndex + 1) % _ringSize;
 
@@ -271,6 +275,8 @@ namespace controller {
                         _posRingBuffer[index] = avg;
                     }
 
+
+                    #endif
                     // clear signal buffer
 
                     for (size_t i = 0; i < _ringSize; i++){
@@ -450,8 +456,8 @@ namespace controller {
         int indx = 0;
 
         for (int i = 0; i < 3; i++) {
-            if (std::fabsf(v[i]) > max) {
-                max = std::fabsf(v[i]);
+            if (fabsf(v[i]) > max) {
+                max = fabsf(v[i]);
                 indx = i;
             }
         }
@@ -466,7 +472,7 @@ namespace controller {
         float s = sinf(psi / 2.0f);
 
         if (s == 0) {
-            if (std::fabsf(std::fmodf(psi, (float)M_PI)) < 1e-6){
+            if (fabsf(fmodf(psi, (float)M_PI)) < 1e-6){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;

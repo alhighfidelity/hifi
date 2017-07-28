@@ -105,7 +105,7 @@
 
          {
           "from": "Standard.RightFoot", "to" : "Actions.RightFoot",
-            "filters" : [{"type" :  "highVelocity", "p_threshold" : 1.0, "p_weight": 2, "size": 5, "q_threshold" : 0.05, "q_weight" : 2, "p_samples" : 100}]
+            "filters" : [{"type" :  "highVelocity", "p_threshold" : 0.05, "p_weight": 2, "size": 5, "q_threshold" : 0.05, "q_weight" : 2, "p_samples" : 100}]
         },
 
         { "from": "Standard.Hips", "to": "Actions.Hips" },
