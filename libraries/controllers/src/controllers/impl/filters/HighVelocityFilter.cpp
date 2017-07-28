@@ -218,9 +218,9 @@ namespace controller {
                 if (signal > _pThresh) {
 
                     index = _posRingIndex;
-                    glm::vec3 begin = _posRingBuffer[index];  // first
+                    //glm::vec3 begin = _posRingBuffer[index];  // first
                     index = (_posRingIndex - 1) % _ringSize;
-                    glm::vec3 end = _posRingBuffer[index]; // last
+                    //glm::vec3 end = _posRingBuffer[index]; // last
 
                     // write out buffer
 
@@ -468,11 +468,11 @@ namespace controller {
     glm::quat HighVelocityFilter::unitVecAngle(glm::quat q) const {
 
         glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
-        float psi = 2.0*acosf(q.w);
+        float psi = 2.0f*acosf(q.w);
         float s = sinf(psi / 2.0f);
 
         if (s == 0) {
-            if (fabsf(fmodf(psi, (float)M_PI)) < 1e-6){
+            if (fabsf(fmodf(psi, (float)M_PI)) < 1e-6f){
                 ret.x = 0.0f;
                 ret.y = 0.0f;
                 ret.z = 1.0f;
