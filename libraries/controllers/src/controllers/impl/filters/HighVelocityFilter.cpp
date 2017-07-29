@@ -29,6 +29,7 @@ namespace controller {
         _ringBack = (_ringSize - 1) / 2;
         _currTime = std::clock();
         _numberSamples = 0;
+        _callCount = 0;
 
         //qDebug() << " N = " << _posOutput.size();
 
@@ -90,7 +91,7 @@ namespace controller {
         }
 
        
-        #if WANT_DEBUG
+        //#if WANT_DEBUG
 
         size_t len1 = _magRingBuffer.size();
 
@@ -99,7 +100,7 @@ namespace controller {
             qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
         }
 
-        #endif
+        //#endif
 
         return ret;
 }
@@ -152,14 +153,14 @@ namespace controller {
 
        
         
-        #if WANT_DEBUG
+        //#if WANT_DEBUG
         // write out buffer
             size_t len1 = _magRingBuffer.size();
             qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " length before = " << len << " length after = " << len1 << endl;
             for (int i = 0; i < len1; i++) {
                 qDebug() << i << "\t" << _magRingBuffer[i] << endl;
             }
-        #endif
+        //#endif
 
         return ret;
     }
@@ -172,12 +173,15 @@ namespace controller {
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
 
-         #if WANT_DEBUG
+       notZeroFlag = glm::dot(pos, pos) != 0.0f;
+
+
+        // #if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
-            qDebug() << " Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
-                << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
+            qDebug() << " Filter Input: " << " " << newPose.getTranslation().x << " " << newPose.getTranslation().y << " " << newPose.getTranslation().z << " "
+                << newPose.getRotation().w << " " << newPose.getRotation().x << " " << newPose.getRotation().y << " " << newPose.getRotation().z;
         }
-        #endif
+        //#endif
 
         ret.translation = pos;
         ret.rotation = rot;
@@ -205,17 +209,17 @@ namespace controller {
 
            // #if WANT_DEBUG
             if (glm::dot(vTmp, vTmp) != 0.0f) {
-                qDebug() << " Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
+                qDebug() << " After Ring Buffer - Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
                     << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
                      // " " << signal << endl;
                 //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
                 // #endif
             }
 
-            if (_numberSamples > _pSamples){
+            if (_numberSamples >= _pSamples){
                 size_t index = 0;
 
-                if (signal > _pThresh) {
+                if (signal >= _pThresh) {
 
                     index = _posRingIndex;
                     //glm::vec3 begin = _posRingBuffer[index];  // first
@@ -275,8 +279,6 @@ namespace controller {
                         _posRingBuffer[index] = avg;
                     }
 
-
-                    #endif
                     // clear signal buffer
 
                     for (size_t i = 0; i < _ringSize; i++){
@@ -297,6 +299,15 @@ namespace controller {
                         std::vector<glm::quat>::iterator it1 = _rotBuffer.begin();
                         _rotBuffer.insert(it1, qTmp);
                     }
+
+                    #endif
+
+                    len = _posRingBuffer.size();
+                    glm::vec3 tmp = _posRingBuffer[len - 1];
+                   // glm::vec3 vTmp = ringBufferManager(tmp, _ringSize);
+                    glm::vec3 vTmp = _posRingBuffer[_posRingIndex];
+                    std::vector<glm::vec3>::iterator it = _posBuffer.begin();
+                    _posBuffer.insert(it, vTmp);
 
                     // #if WANT_DEBUG
                     // write out buffer after
@@ -362,8 +373,11 @@ namespace controller {
         glm::quat qTmp = ret.getRotation();
        
         if (glm::dot(vTmp, vTmp) != 0.0f) {
-            qDebug() << " Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
+            qDebug() << " Filter Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
         }
+
+
+        _callCount++;
 
         return ret;
     }

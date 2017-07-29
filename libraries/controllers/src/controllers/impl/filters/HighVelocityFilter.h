@@ -96,6 +96,8 @@ namespace controller {
                 mutable uint _numberSamples;
                 mutable uint _pSamples;
                 mutable glm::vec3 _posAvg;
+                mutable size_t _callCount{ 0 };
+                mutable bool notZeroFlag { false };
 
     };
 
