@@ -96,7 +96,7 @@ namespace controller {
         size_t len1 = _magRingBuffer.size();
 
         qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " length before = " << len << " length after = " << len1 << endl;
-        for (int i = 0; i < len1; i++) {
+        for (size_t i = 0; i < len1; i++) {
             qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
         }
 
@@ -125,7 +125,7 @@ namespace controller {
         // write out buffer
         size_t len1 = _rotRingBuffer.size();
         qDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " length before = " << len << " length after = " << len1 << endl;
-        for (int i = 0; i < len1; i++) {
+        for (size_t i = 0; i < len1; i++) {
             qDebug() << i << "\t" << _rotRingBuffer[i] << endl;
         }
         #endif
@@ -157,7 +157,7 @@ namespace controller {
         // write out buffer
             size_t len1 = _magRingBuffer.size();
             qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " length before = " << len << " length after = " << len1 << endl;
-            for (int i = 0; i < len1; i++) {
+            for (size_t i = 0; i < len1; i++) {
                 qDebug() << i << "\t" << _magRingBuffer[i] << endl;
             }
         //#endif
@@ -393,7 +393,7 @@ namespace controller {
 
     void HighVelocityFilter::pThreshold(glm::vec3 v,glm::vec3 pos) const {
         
-        for (int i = 0; i < 3; i++){
+        for (size_t i = 0; i < 3; i++){
             if (v[i] > _pThresh) {
                 processPos(i);
             }
@@ -467,9 +467,9 @@ namespace controller {
     float  HighVelocityFilter::maxIndex(glm::vec3 v)  const {
 
         float max = -1000.0;
-        int indx = 0;
+        size_t indx = 0;
 
-        for (int i = 0; i < 3; i++) {
+        for (size_t i = 0; i < 3; i++) {
             if (fabsf(v[i]) > max) {
                 max = fabsf(v[i]);
                 indx = i;
