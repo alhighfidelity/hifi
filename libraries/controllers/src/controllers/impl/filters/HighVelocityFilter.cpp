@@ -186,7 +186,7 @@ namespace controller {
         ret.translation = pos;
         ret.rotation = rot;
 
-        if (glm::dot(pos, pos) != 0) {
+        if (glm::dot(pos, pos) != 0.0f) {
 
             float weight = 1.0f / (float)_pWeight;
 
@@ -466,7 +466,7 @@ namespace controller {
 
     float  HighVelocityFilter::maxIndex(glm::vec3 v)  const {
 
-        float max = -1000.0;
+        float max = -1000.0f;
         size_t indx = 0;
 
         for (size_t i = 0; i < 3; i++) {
