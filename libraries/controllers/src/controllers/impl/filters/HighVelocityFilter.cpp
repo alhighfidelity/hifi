@@ -303,7 +303,7 @@ namespace controller {
                     #endif
 
                     len = _posRingBuffer.size();
-                    glm::vec3 tmp = _posRingBuffer[len - 1];
+                    // glm::vec3 tmp = _posRingBuffer[len - 1];
                    // glm::vec3 vTmp = ringBufferManager(tmp, _ringSize);
                     glm::vec3 vTmp = _posRingBuffer[_posRingIndex];
                     std::vector<glm::vec3>::iterator it = _posBuffer.begin();
@@ -393,7 +393,7 @@ namespace controller {
 
     void HighVelocityFilter::pThreshold(glm::vec3 v,glm::vec3 pos) const {
         
-        for (size_t i = 0; i < 3; i++){
+        for (uint i = 0; i < 3; i++){
             if (v[i] > _pThresh) {
                 processPos(i);
             }
@@ -467,9 +467,9 @@ namespace controller {
     float  HighVelocityFilter::maxIndex(glm::vec3 v)  const {
 
         float max = -1000.0f;
-        size_t indx = 0;
+        uint indx = 0;
 
-        for (size_t i = 0; i < 3; i++) {
+        for (uint i = 0; i < 3; i++) {
             if (fabsf(v[i]) > max) {
                 max = fabsf(v[i]);
                 indx = i;
