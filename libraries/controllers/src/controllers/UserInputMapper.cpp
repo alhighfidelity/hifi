@@ -582,6 +582,20 @@ bool UserInputMapper::applyRoute(const Route::Pointer& route, bool force) {
         // Apply each of the filters.
         for (const auto& filter : route->filters) {
             value = filter->apply(value);
+            glm::vec3 pos = value.getTranslation();
+            glm::quat rot = value.getRotation();
+            glm::vec3 vel = value.getVelocity();
+            glm::vec3 a_vel = value.getAngularVelocity();
+            bool valid = value.isValid();
+
+            if (glm::dot(pos, pos) != 0.0f) {
+                qDebug() << " Filter Output: " << " " << "position:" << pos.x << " " << pos.y << " " << pos.z << " "
+                    << "rotation: " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << " ";
+                    //<< "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
+                    //<< "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " "
+                    //<< "valid: " << valid;
+            }
+
         }
 
         if (debugRoutes && route->debug) {

@@ -172,19 +172,28 @@ namespace controller {
 
         glm::vec3 pos = newPose.getTranslation();
         glm::quat rot = newPose.getRotation();
-
-       notZeroFlag = glm::dot(pos, pos) != 0.0f;
-
-
-        // #if WANT_DEBUG
-        if (glm::dot(pos, pos) != 0.0f) {
-            qDebug() << " Filter Input: " << " " << newPose.getTranslation().x << " " << newPose.getTranslation().y << " " << newPose.getTranslation().z << " "
-                << newPose.getRotation().w << " " << newPose.getRotation().x << " " << newPose.getRotation().y << " " << newPose.getRotation().z;
-        }
-        //#endif
+        glm::vec3 vel = newPose.getVelocity();
+        glm::vec3 a_vel = newPose.getAngularVelocity();
+        bool valid = newPose.isValid();
 
         ret.translation = pos;
         ret.rotation = rot;
+        ret.velocity = vel;
+        ret.angularVelocity = a_vel;
+        ret.valid = valid;
+
+       notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f;
+
+        // #if WANT_DEBUG
+        if (glm::dot(pos, pos) != 0.0f) {
+            qDebug() << " Filter Input: " << " " << "position:" << pos.x << " " << pos.y << " " << pos.z << " "
+                << "rotation: " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
+               // << "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
+               // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
+               // << "valid: " <<valid;
+        }
+        //#endif
+
 
         if (glm::dot(pos, pos) != 0.0f) {
 
@@ -303,11 +312,18 @@ namespace controller {
                     #endif
 
                     len = _posRingBuffer.size();
-                    // glm::vec3 tmp = _posRingBuffer[len - 1];
-                   // glm::vec3 vTmp = ringBufferManager(tmp, _ringSize);
-                    glm::vec3 vTmp = _posRingBuffer[_posRingIndex];
-                    std::vector<glm::vec3>::iterator it = _posBuffer.begin();
-                    _posBuffer.insert(it, vTmp);
+                    if (len > 0) {
+                        glm::vec3 vTmp = _posRingBuffer[_posRingIndex];
+                        std::vector<glm::vec3>::iterator it = _posBuffer.begin();
+                        _posBuffer.insert(it, vTmp);
+                    }
+
+                    len = _rotRingBuffer.size();
+                    if (len > 0) {
+                        glm::quat qTmp = _rotRingBuffer[_rotRingIndex];
+                        std::vector<glm::quat>::iterator it1 = _rotBuffer.begin();
+                        _rotBuffer.insert(it1, qTmp);
+                    }
 
                     // #if WANT_DEBUG
                     // write out buffer after
@@ -372,10 +388,14 @@ namespace controller {
         glm::vec3 vTmp = ret.getTranslation();
         glm::quat qTmp = ret.getRotation();
        
+
+        #if WANT_DEBUG
+
         if (glm::dot(vTmp, vTmp) != 0.0f) {
             qDebug() << " Filter Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
         }
 
+        #endif
 
         _callCount++;
 
