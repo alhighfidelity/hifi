@@ -589,8 +589,8 @@ bool UserInputMapper::applyRoute(const Route::Pointer& route, bool force) {
            // bool valid = value.isValid();
 
             if (glm::dot(pos, pos) != 0.0f) {
-                qDebug() << " Filter Output: " << " " << "position:" << pos.x << " " << pos.y << " " << pos.z << " "
-                    << "rotation: " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << " ";
+                qDebug() << " Filter Output: " << pos.x << " " << pos.y << " " << pos.z << " "
+                    << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << " ";
                     //<< "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
                     //<< "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " "
                     //<< "valid: " << valid;

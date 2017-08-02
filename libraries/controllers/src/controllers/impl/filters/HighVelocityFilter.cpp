@@ -77,14 +77,14 @@ namespace controller {
     glm::vec3 HighVelocityFilter::ringBufferManager(const glm::vec3 &v, const size_t &size) const {
     
         size_t len = _posRingBuffer.size();
-        glm::vec3 ret = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 ret = v;
         size_t index = 0;
 
         if (len < size) {
             _posRingBuffer.push_back(v);
         }
         else {
-            index = (_posRingIndex + _ringBack) % size;
+            index = ( 1 + _posRingIndex + _ringBack) % size;
             ret = _posRingBuffer[index];
             _posRingBuffer[_posRingIndex] = v;
             _posRingIndex++;
@@ -110,14 +110,14 @@ namespace controller {
     glm::quat HighVelocityFilter::ringBufferManager(const glm::quat &q, const size_t &size) const {
 
         size_t len = _rotRingBuffer.size();
-        glm::quat ret = { 0.0f, 0.0f, 0.0f, 0.0f };
+        glm::quat ret = q;
         size_t index = 0;
 
         if (len < size) {
             _rotRingBuffer.push_back(q);
         }
         else {
-            index = (_rotRingIndex + _ringBack) % size;
+            index = ( 1 + _rotRingIndex + _ringBack) % size;
             ret = _rotRingBuffer[_rotRingIndex];
             _rotRingBuffer[_rotRingIndex] = q;
             _rotRingIndex++;
@@ -141,14 +141,14 @@ namespace controller {
     float HighVelocityFilter::ringBufferManager(const float &mag, const size_t &size) const {
 
         size_t len = _magRingBuffer.size();
-        float ret = 0.0f;
+        float ret = mag;
         size_t index = 0;
 
         if (len < size) {
             _magRingBuffer.push_back(mag);
         }
         else {
-            index = (_magRingIndex + _ringBack) % size;
+            index = (1 + _magRingIndex + _ringBack) % size;
             ret = _magRingBuffer[index];
             _magRingBuffer[_magRingIndex] = mag;
             _magRingIndex++;
@@ -191,8 +191,8 @@ namespace controller {
 
         // #if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
-            qDebug() << " Filter Input: " << " " << "position:" << pos.x << " " << pos.y << " " << pos.z << " "
-                << "rotation: " << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
+            qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
+                << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
                // << "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
                // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
                // << "valid: " <<valid;
@@ -236,9 +236,9 @@ namespace controller {
                 if (signal >= _pThresh) {
 
                     index = _posRingIndex;
-                    //glm::vec3 begin = _posRingBuffer[index];  // first
+                    glm::vec3 begin = _posRingBuffer[index];  // first
                     index = (_posRingIndex - 1) % _ringSize;
-                    //glm::vec3 end = _posRingBuffer[index]; // last
+                    glm::vec3 end = _posRingBuffer[index]; // last
 
                     // write out buffer
 
@@ -257,7 +257,7 @@ namespace controller {
 
                     // comment out for now
 
-                    #if FILTER_OFF
+                    //#if FILTER_OFF
 
                     _posRingBuffer[_posRingIndex] = begin;
                     size_t start = (_posRingIndex + 1) % _ringSize;
@@ -314,7 +314,7 @@ namespace controller {
                         _rotBuffer.insert(it1, qTmp);
                     }
 
-                    #endif
+                    //#endif
 
                     len = _posRingBuffer.size();
                     if (len > 0) {
@@ -378,7 +378,7 @@ namespace controller {
             _posBuffer.pop_back();
         }
         else {
-            ret.translation = { 0.0f, 0.0f, 0.0f };
+            ret.translation = pos;
         }
 
         len = _rotBuffer.size();
@@ -387,12 +387,8 @@ namespace controller {
             _rotBuffer.pop_back();
         }
         else {
-            ret.rotation = { 0.0f, 0.0f, 0.0f, 0.0f };
+            ret.rotation = rot;
         }
-
-        //glm::vec3 vTmp = ret.getTranslation();
-        //glm::quat qTmp = ret.getRotation();
-       
 
         #if WANT_DEBUG
 
