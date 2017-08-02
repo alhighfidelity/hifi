@@ -96,7 +96,7 @@ namespace controller {
 
         size_t len1 = _magRingBuffer.size();
 
-        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " index = " << index << " length before = " << len << " length after = " << len1 << endl;
+        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
         for (size_t i = 0; i < len1; i++) {
             qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
         }
@@ -127,7 +127,7 @@ namespace controller {
        // #if WANT_DEBUG
         // write out buffer
         size_t len1 = _rotRingBuffer.size();
-        qDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " index =  " << index << " length before = " << len << " length after = " << len1 << endl;
+        qDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " index =  " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
         for (size_t i = 0; i < len1; i++) {
             qDebug() << i << "\t" << _rotRingBuffer[i].w << "\t" << _rotRingBuffer[i].x << "\t" << _rotRingBuffer[i].y << "\t" << _rotRingBuffer[i].z << endl;
         }
@@ -160,7 +160,8 @@ namespace controller {
         //#if WANT_DEBUG
         // write out buffer
             size_t len1 = _magRingBuffer.size();
-            qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " index = " << index << " length before = " << len << " length after = " << len1 << endl;
+            qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size
+                     << " length before = " << len << " length after = " << len1 << endl;
             for (size_t i = 0; i < len1; i++) {
                 qDebug() << i << "\t" << _magRingBuffer[i] << endl;
             }
