@@ -118,7 +118,7 @@ namespace controller {
         }
         else {
             index = ( 1 + _rotRingIndex + _ringBack) % size;
-            ret = _rotRingBuffer[_rotRingIndex];
+            ret = _rotRingBuffer[index];
             _rotRingBuffer[_rotRingIndex] = q;
             _rotRingIndex++;
             _rotRingIndex = _rotRingIndex % size;
@@ -317,7 +317,7 @@ namespace controller {
                      
                     for (size_t i = _rotRingIndex; i < _rotRingIndex + _ringSize; i++) {
                         size_t index = i%_ringSize;
-                        glm::quat qTmp = _rotRingBuffer[i];
+                        glm::quat qTmp = _rotRingBuffer[index];
                         std::vector<glm::quat>::iterator it = _rotBuffer.begin();
                         _rotBuffer.insert(it, qTmp);
                     }
