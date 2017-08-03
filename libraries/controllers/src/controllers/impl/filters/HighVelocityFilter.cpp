@@ -190,7 +190,7 @@ namespace controller {
 
        notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f;
 
-        // #if WANT_DEBUG
+        #if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
             qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
@@ -198,7 +198,7 @@ namespace controller {
                // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
                // << "valid: " <<valid;
         }
-        //#endif
+        #endif
 
 
         if (glm::dot(pos, pos) != 0.0f) {
@@ -650,7 +650,7 @@ namespace controller {
 
         glm::vec3 ret;
         
-        qDebug() << "Input: N = " << _posOutput.size() << " " << v.x << " " << v.y << " " << v.z;
+        // qDebug() << "Input: N = " << _posOutput.size() << " " << v.x << " " << v.y << " " << v.z;
 
         if (_posOutput.empty()){
             ret = v;
@@ -676,7 +676,7 @@ namespace controller {
         _posOutput.erase(it);
         _posOutput.push_back(v);
 
-        qDebug() << "Output: N = " << _posOutput.size() << " " << ret.x << " " << ret.y << " " << ret.z;
+//qDebug() << "Output: N = " << _posOutput.size() << " " << ret.x << " " << ret.y << " " << ret.z;
 
        return ret;
     }

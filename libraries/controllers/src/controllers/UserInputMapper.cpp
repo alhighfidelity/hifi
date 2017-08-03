@@ -588,6 +588,8 @@ bool UserInputMapper::applyRoute(const Route::Pointer& route, bool force) {
            // glm::vec3 a_vel = value.getAngularVelocity();
            // bool valid = value.isValid();
 
+            #if WANT_DEBUG
+
             if (glm::dot(pos, pos) != 0.0f) {
                 qDebug() << " Filter Output: " << pos.x << " " << pos.y << " " << pos.z << " "
                     << rot.w << " " << rot.x << " " << rot.y << " " << rot.z << " ";
@@ -595,7 +597,7 @@ bool UserInputMapper::applyRoute(const Route::Pointer& route, bool force) {
                     //<< "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " "
                     //<< "valid: " << valid;
             }
-
+            #endif
         }
 
         if (debugRoutes && route->debug) {
