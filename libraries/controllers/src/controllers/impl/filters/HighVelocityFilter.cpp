@@ -172,6 +172,15 @@ namespace controller {
 
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
+    
+        Pose ret = PosFilter(newPose);
+    
+        return ret;
+    
+    }
+
+
+    Pose HighVelocityFilter::PosFilter(const Pose &newPose) const {
 
     
         Pose ret;
@@ -190,7 +199,7 @@ namespace controller {
 
        notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f;
 
-        #if WANT_DEBUG
+        //#if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
             qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
@@ -198,7 +207,7 @@ namespace controller {
                // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
                // << "valid: " <<valid;
         }
-        #endif
+        //#endif
 
 
         if (glm::dot(pos, pos) != 0.0f) {
@@ -256,7 +265,7 @@ namespace controller {
                     }
                     #endif
 
-                    // set up step in ring buffer
+                    // set up step in pos ring buffer
 
                     // comment out for now
 
@@ -273,19 +282,11 @@ namespace controller {
                         _posRingBuffer[index] = end;
                     }
                    
-                   #if WANT_DEBUG
-                    // write out buffer after
-                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
-                    len = _posRingBuffer.size();
-                    for (size_t i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
-                    }
-
-                    #endif
 
                     // average over step function
 
                     avg = begin;
+
 
                     for (size_t i = start; i < start + _ringSize - 1; i++) {
                         index = i%_ringSize;
@@ -296,6 +297,52 @@ namespace controller {
                         _posRingBuffer[index] = avg;
                     }
 
+                   #if WANT_DEBUG
+                    // write out buffer after
+                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
+                    len = _posRingBuffer.size();
+                    for (size_t i = 0; i < len; i++) {
+                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                    }
+
+                    #endif
+
+
+                    // set up step in rot ring buffer
+
+                    index = _rotRingIndex;
+                    glm::quat qBegin = _rotRingBuffer[index];  // first
+                    index = (_rotRingIndex - 1) % _ringSize;
+                    glm::quat qEnd = _rotRingBuffer[index]; // last
+
+                    _rotRingBuffer[_rotRingIndex] = qBegin;
+                    size_t qstart = (_rotRingIndex + 1) % _ringSize;
+
+
+                    for (size_t i = qstart; i < qstart + _ringSize - 1; i++) {
+                        index = i%_ringSize;
+                        #if WANT_DEBUG
+                        qDebug() << "index = " << index << endl;
+                        #endif
+                        _rotRingBuffer[index] = qEnd;
+                    }
+
+
+                    // average over rotation step function
+
+                    glm::quat qAvg = qBegin;
+
+                    for (size_t i = start; i < start + _ringSize - 1; i++) {
+                        index = i%_ringSize;
+                        #if WANT_DEBUG
+                        qDebug() << "index = " << index << endl;
+                        #endif
+                        avg = _posRingBuffer[index] * weight + (1.0f - weight)*avg;
+                        _posRingBuffer[index] = avg;
+                    }
+
+                    
+
                     // clear signal buffer
 
                     for (size_t i = 0; i < _ringSize; i++){
@@ -304,7 +351,7 @@ namespace controller {
                     }
                       
 
-                    // copy ring buffer to output
+                    // copy position ring buffer to output
 
 
                     for (size_t i = _posRingIndex; i < _posRingIndex + _ringSize; i++) {
@@ -314,7 +361,9 @@ namespace controller {
                         _posBuffer.insert(it, vTmp);
                     }
                         
-                     
+                    // copy rotation ring buffer to the output 
+
+
                     for (size_t i = _rotRingIndex; i < _rotRingIndex + _ringSize; i++) {
                         size_t index = i%_ringSize;
                         glm::quat qTmp = _rotRingBuffer[index];
@@ -401,6 +450,10 @@ namespace controller {
 
         return ret;
     }
+
+
+
+
 
 
     glm::vec3 HighVelocityFilter::diff(glm::vec3 v1, glm::vec3 v2) const {
