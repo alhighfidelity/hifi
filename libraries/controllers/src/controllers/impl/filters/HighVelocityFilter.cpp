@@ -172,15 +172,6 @@ namespace controller {
 
 
     Pose HighVelocityFilter::apply(Pose newPose) const {
-    
-        Pose ret = PosFilter(newPose);
-    
-        return ret;
-    
-    }
-
-
-    Pose HighVelocityFilter::PosFilter(const Pose &newPose) const {
 
     
         Pose ret;
@@ -337,8 +328,8 @@ namespace controller {
                         #if WANT_DEBUG
                         qDebug() << "index = " << index << endl;
                         #endif
-                        avg = _posRingBuffer[index] * weight + (1.0f - weight)*avg;
-                        _posRingBuffer[index] = avg;
+                        qAvg = _rotRingBuffer[index] * weight + (1.0f - weight)*qAvg;
+                        _rotRingBuffer[index] = qAvg;
                     }
 
                     

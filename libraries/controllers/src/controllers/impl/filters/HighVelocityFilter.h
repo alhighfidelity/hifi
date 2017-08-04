@@ -69,7 +69,6 @@ namespace controller {
                 glm::vec3 ringBufferManager(const glm::vec3 &v,const size_t &size) const;
                 glm::quat ringBufferManager(const glm::quat &q, const size_t &size) const;
                 float ringBufferManager(const float &mag, const size_t &size) const;
-                Pose PosFilter(const Pose &newPose) const;
                 mutable std::vector<glm::vec3> _posOutput;
                 mutable std::vector<glm::quat> _rotOutput;
                 mutable std::vector<glm::vec3> _posRingBuffer;
