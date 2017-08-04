@@ -190,7 +190,7 @@ namespace controller {
 
        notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f;
 
-        //#if WANT_DEBUG
+        #if WANT_DEBUG
         if (glm::dot(pos, pos) != 0.0f) {
             qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
@@ -198,7 +198,7 @@ namespace controller {
                // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
                // << "valid: " <<valid;
         }
-        //#endif
+        #endif
 
 
         if (glm::dot(pos, pos) != 0.0f) {
