@@ -68,9 +68,9 @@ namespace controller {
         uintptr_t getPosRingBufferSize() const { return _posRingBuffer.size(); }
         uintptr_t getRotRingBufferSize() const { return _rotRingBuffer.size(); }
         uintptr_t getMagRingBufferSize() const { return _magRingBuffer.size(); }
-        const uintptr_t getPosRingIndex() const { return _posRingIndex; }
-        const uintptr_t getRotRingIndex() const { return _rotRingIndex; }
-        const uintptr_t getMagRingIndex() const { return _magRingIndex; }
+        uintptr_t getPosRingIndex() const { return _posRingIndex; }
+        uintptr_t getRotRingIndex() const { return _rotRingIndex; }
+        uintptr_t getMagRingIndex() const { return _magRingIndex; }
         uintptr_t getRingBack() const { return _ringBack; }
         glm::vec3 getPosRingBuffer(uintptr_t i) const { return _posRingBuffer[i]; }
         glm::quat getRotRingBuffer(uintptr_t i) const { return _rotRingBuffer[i]; }
