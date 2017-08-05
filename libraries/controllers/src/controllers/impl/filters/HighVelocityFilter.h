@@ -64,6 +64,15 @@ namespace controller {
                 mutable uint _avgLength;
                 mutable glm::vec3 _posAvg;
                 mutable bool _notZeroFlag { false };
+
+                const uintptr_t getPosRingBufferSize() const { return _posRingBuffer.size(); }
+                void setPosRingBuffer(glm::vec3 v, uintptr_t i) const { _posRingBuffer[i] = v; }
+                void setPosRingBuffer(glm::vec3 v) const { _posRingBuffer.push_back(v); }
+                const uintptr_t getPosRingIndex() const { return _posRingIndex; }
+                void setPosRingIndex(uintptr_t i) const { _posRingIndex = i; }
+                const uintptr_t getRingBack() const { return _ringBack;  }
+                const glm::vec3 getPosRingBuffer(uintptr_t i) const { return _posRingBuffer[i]; }
+
     };
 
 }

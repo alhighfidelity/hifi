@@ -61,19 +61,22 @@ namespace controller {
 
     glm::vec3 HighVelocityFilter::ringBufferManager(glm::vec3 v, uint size) const {
     
-        uintptr_t len = _posRingBuffer.size();
+        uintptr_t len = getPosRingBufferSize();
         glm::vec3 ret = v;
         uintptr_t index = 0;
 
         if (len < size) {
-            _posRingBuffer.push_back(v);
+            setPosRingBuffer(v);
         }
         else {
-            index = ( 1 + _posRingIndex + _ringBack) % size;
-            ret = _posRingBuffer[index];
-            _posRingBuffer[_posRingIndex] = v;
-            _posRingIndex++;
-            _posRingIndex = _posRingIndex % size;
+            uintptr_t posIndex = getPosRingIndex();
+            uintptr_t ringBack = getRingBack();
+            index = ( 1 + posIndex + ringBack) % size;
+            ret = getPosRingBuffer(index);
+            setPosRingBuffer(v, posIndex);
+            posIndex++;
+            posIndex = posIndex % size;
+            setPosRingIndex(posIndex);
         }
 
        
@@ -175,7 +178,7 @@ namespace controller {
        _notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f; 
 
         #if WANT_DEBUG
-        if (glm::dot(pos, pos) != 0.0f) {
+        if (glm::dot(_notZeroFlag) != 0.0f) {
             qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
                // << "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
@@ -205,7 +208,7 @@ namespace controller {
             _numberSamples++;
 
             #if WANT_DEBUG
-            if (glm::dot(vTmp, vTmp) != 0.0f) {
+            if (_notZeroFlag) {
                 qDebug() << " After Ring Buffer - Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
                     << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
                      // " " << signal << endl;
@@ -413,7 +416,7 @@ namespace controller {
 
         #if WANT_DEBUG
 
-        if (glm::dot(vTmp, vTmp) != 0.0f) {
+        if (_notZeroFlag) {
             qDebug() << " Filter Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
         }
 
