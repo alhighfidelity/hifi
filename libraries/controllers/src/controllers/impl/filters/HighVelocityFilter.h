@@ -44,8 +44,8 @@ namespace controller {
 
             private:
            
-                glm::vec3 ringBufferManager(glm::vec3 v, uint size) const;
-                glm::quat ringBufferManager(glm::quat q, uint size) const;
+                glm::vec3 ringBufferManager(glm::vec3 v, uintptr_t size) const;
+                glm::quat ringBufferManager(glm::quat q, uintptr_t size) const;
                 float ringBufferManager(float mag, uintptr_t size) const;
                 mutable std::vector<glm::vec3> _posRingBuffer;
                 mutable std::vector<glm::quat> _rotRingBuffer;
@@ -65,14 +65,26 @@ namespace controller {
                 mutable glm::vec3 _posAvg;
                 mutable bool _notZeroFlag { false };
 
-                const uintptr_t getPosRingBufferSize() const { return _posRingBuffer.size(); }
+                uintptr_t getPosRingBufferSize() const { return _posRingBuffer.size(); }
+                uintptr_t getRotRingBufferSize() const { return _rotRingBuffer.size(); }
+                uintptr_t getMagRingBufferSize() const { return _magRingBuffer.size(); }
+
                 void setPosRingBuffer(glm::vec3 v, uintptr_t i) const { _posRingBuffer[i] = v; }
                 void setPosRingBuffer(glm::vec3 v) const { _posRingBuffer.push_back(v); }
-                const uintptr_t getPosRingIndex() const { return _posRingIndex; }
+                void setRotRingBuffer(glm::quat q) const { _rotRingBuffer.push_back(q); }
+                void setRotRingBuffer(glm::quat q, uintptr_t i) const { _rotRingBuffer[i] = q; }
+                void setMagRingBuffer(float mag) const { _magRingBuffer.push_back(mag); }
+                void setMagRingBuffer(float mag, uintptr_t i) const { _magRingBuffer[i] = mag; }
                 void setPosRingIndex(uintptr_t i) const { _posRingIndex = i; }
-                const uintptr_t getRingBack() const { return _ringBack;  }
-                const glm::vec3 getPosRingBuffer(uintptr_t i) const { return _posRingBuffer[i]; }
-
+                void setRotRingIndex(uintptr_t i) const { _rotRingIndex = i; }
+                void setMagRingIndex(uintptr_t i) const { _magRingIndex = i; }
+                const uintptr_t getPosRingIndex() const { return _posRingIndex; }
+                const uintptr_t getRotRingIndex() const { return _rotRingIndex; }
+                const uintptr_t getMagRingIndex() const { return _magRingIndex; }
+                uintptr_t getRingBack() const { return _ringBack;  }
+                glm::vec3 getPosRingBuffer(uintptr_t i) const { return _posRingBuffer[i]; };
+                glm::quat getRotRingBuffer(uintptr_t i) const { return _rotRingBuffer[i]; };
+                float getMagRingBuffer(uintptr_t i) const { return _magRingBuffer[i]; };
     };
 
 }

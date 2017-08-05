@@ -59,7 +59,7 @@ namespace controller {
     }
 
 
-    glm::vec3 HighVelocityFilter::ringBufferManager(glm::vec3 v, uint size) const {
+    glm::vec3 HighVelocityFilter::ringBufferManager(glm::vec3 v, uintptr_t size) const {
     
         uintptr_t len = getPosRingBufferSize();
         glm::vec3 ret = v;
@@ -95,21 +95,25 @@ namespace controller {
 }
        
 
-    glm::quat HighVelocityFilter::ringBufferManager(glm::quat q, uint size) const {
+    glm::quat HighVelocityFilter::ringBufferManager(glm::quat q, uintptr_t size) const {
 
-        uintptr_t len = _rotRingBuffer.size();
+        uintptr_t len = getRotRingBufferSize();
         glm::quat ret = q;
         uintptr_t index = 0;
 
         if (len < size) {
-            _rotRingBuffer.push_back(q);
+            setRotRingBuffer(q);
         }
         else {
-            index = ( 1 + _rotRingIndex + _ringBack) % size;
-            ret = _rotRingBuffer[index];
-            _rotRingBuffer[_rotRingIndex] = q;
-            _rotRingIndex++;
-            _rotRingIndex = _rotRingIndex % size;
+            uintptr_t rotRingIndex = getRotRingIndex();
+            uintptr_t ringBack = getRingBack();
+            index = ( 1 + rotRingIndex + ringBack) % size;
+
+            ret = getRotRingBuffer(index);
+            setRotRingBuffer(q, rotRingIndex);
+            rotRingIndex++;
+            rotRingIndex = rotRingIndex % size;
+            setRotRingIndex(rotRingIndex);
         }
 
        #if WANT_DEBUG
@@ -128,19 +132,24 @@ namespace controller {
 
     float HighVelocityFilter::ringBufferManager(float mag, uintptr_t size) const {
 
-        uintptr_t len = _magRingBuffer.size();
+
+        uintptr_t len = getMagRingBufferSize();
         float ret = mag;
         uint index = 0;
 
         if (len < size) {
-            _magRingBuffer.push_back(mag);
+            setMagRingBuffer(mag);
         }
         else {
-            index = (1 + _magRingIndex + _ringBack) % size;
-            ret = _magRingBuffer[index];
-            _magRingBuffer[_magRingIndex] = mag;
-            _magRingIndex++;
-            _magRingIndex = _magRingIndex % size;
+            uintptr_t magRingIndex = getMagRingIndex();
+            uintptr_t ringBack = getRingBack();
+
+            index = (1 + magRingIndex + ringBack) % size;
+            ret = getMagRingBuffer(index);
+            setMagRingBuffer(magRingIndex,mag);
+            magRingIndex++;
+            magRingIndex = magRingIndex % size;
+            setMagRingIndex(magRingIndex);
         }
 
        
