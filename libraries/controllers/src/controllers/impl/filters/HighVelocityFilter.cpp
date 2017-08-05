@@ -184,7 +184,7 @@ namespace controller {
         ret.angularVelocity = a_vel;
         ret.valid = valid;
 
-       _notZeroFlag = glm::dot(newPose.getTranslation(), newPose.getTranslation()) != 0.0f; 
+       setNotZeroFlag(glm::dot(pos, pos) != 0.0f); 
 
         #if WANT_DEBUG
         if (glm::dot(_notZeroFlag) != 0.0f) {
@@ -197,24 +197,30 @@ namespace controller {
         #endif
 
 
-        if (_notZeroFlag) {
+        if (getNotZeroFlag()) {
 
-            if (_numberSamples == 0) {
-                _posAvg = { 0.0f, 0.0f, 0.0f };
+            uintptr_t numSamples = getNumberSamples();
+            float pWeight = getPosWeight();
+
+
+            if ( numSamples == 0) {
+                setPosAverage( { 0.0f, 0.0f, 0.0f } );
             }
             else {
-                _posAvg = pos * _pWeight + (1.0f - _pWeight)*_posAvg;
+                glm::vec3 posAvg = getPosAverage();
+                posAvg = pos * pWeight + (1.0f - pWeight)*posAvg;
+                setPosAverage(posAvg);
             }
 
-            glm::vec3 avg = _posAvg;
+            glm::vec3 posAvg = getPosAverage();
 
-            glm::vec3 dv = pos - avg;
+            glm::vec3 dv = pos - posAvg;
             float dvMag = sqrtf(glm::dot(dv, dv));
             float signal = ringBufferManager(dvMag, _ringSize);
             glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
             glm::quat qTmp = ringBufferManager(rot, _ringSize);
 
-            _numberSamples++;
+            numSamples++;
 
             #if WANT_DEBUG
             if (_notZeroFlag) {
@@ -226,58 +232,61 @@ namespace controller {
              #endif
 
 
-
-            if (_numberSamples >= _avgLength){
+            if ( numSamples >= getAvgLength() ){
                 uint index = 0;
 
-                if (signal >= _pThresh) {
+                if (signal >= getPosThreshold() ) {
 
-                    index = _posRingIndex;
-                    glm::vec3 begin = _posRingBuffer[index];  // first
-                    index = (_posRingIndex - 1) % _ringSize;
-                    glm::vec3 end = _posRingBuffer[index]; // last
-
+                    uintptr_t posRingIndex = getPosRingIndex();
+                    glm::vec3 begin = getPosRingBuffer(posRingIndex); // first
+                    uintptr_t ringSize = getRingSize();
+                    index = (posRingIndex - 1) % ringSize;
+                    glm::vec3 end = getPosRingBuffer(index); // last
+                    
                     // write out buffer
 
                    // qDebug() << " Load Position Buffer " << endl;
                      
                     #if WANT_DEBUG
                     // write out buffer before
-                    qDebug() << " Pos Buffer Before: _ringIndex = " << _posRingIndex << endl;
-                    uintptr_t len = _posRingBuffer.size();
+                    qDebug() << " Pos Buffer Before: _ringIndex = " << getPosRingIndex() << endl;
+                    uintptr_t len = getPosRingBufferSize();
                     for (uintptr_t i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
+                        glm::vec3 pos = getPosRingBuffer(i);
+                        qDebug() << i << "\t" << pos.x << "\t" << pos.y << "\t" << pos.z << endl;
                     }
                     #endif
 
                     // set up step in pos ring buffer
 
                     //#if FILTER_OFF
+                    
+                    setPosRingBuffer(begin, posRingIndex);
 
-                    _posRingBuffer[_posRingIndex] = begin;
-                    uint start = (_posRingIndex + 1) % _ringSize;
+                    uint start = (posRingIndex + 1) % ringSize;
 
-                    for (uint i = start; i < start + _ringSize - 1; i++) {
-                        index = i%_ringSize;
+                    for (uint i = start; i < start + ringSize - 1; i++) {
+                        index = i % ringSize;
                         #if WANT_DEBUG
                         qDebug() << "index = " << index << endl;
                         #endif
+                        setPosRingBuffer(end, index);
                         _posRingBuffer[index] = end;
                     }
                    
 
                     // average over position step function
 
-                    avg = begin;
+                    posAvg = begin;
 
-
-                    for ( uint i = start; i < start + _ringSize - 1; i++) {
-                        index = i%_ringSize;
+                    for ( uint i = start; i < start + ringSize - 1; i++) {
+                        index = i % ringSize;
                         #if WANT_DEBUG
                         qDebug() << "index = " << index << endl;
                         #endif
-                        avg = _posRingBuffer[index] * _pWeight + (1.0f - _pWeight)*avg;
-                        _posRingBuffer[index] = avg;
+                        pos = getPosRingBuffer(index);
+                        posAvg = pos * pWeight + (1.0f - pWeight)*posAvg;
+                        setPosRingBuffer(posAvg, index);
                     }
 
                    #if WANT_DEBUG
