@@ -196,6 +196,10 @@ namespace controller {
         }
         #endif
 
+        uintptr_t posRingIndex = getPosRingIndex();
+        uintptr_t ringBack = getRingBack();
+        uintptr_t ringSize = getRingSize();
+        uintptr_t magRingIndex = getMagRingIndex();
 
         if (getNotZeroFlag()) {
 
@@ -216,11 +220,12 @@ namespace controller {
 
             glm::vec3 dv = pos - posAvg;
             float dvMag = sqrtf(glm::dot(dv, dv));
-            float signal = ringBufferManager(dvMag, _ringSize);
-            glm::vec3 vTmp = ringBufferManager(pos, _ringSize);
-            glm::quat qTmp = ringBufferManager(rot, _ringSize);
+            float signal = ringBufferManager(dvMag, ringSize);
+            glm::vec3 vTmp = ringBufferManager(pos, ringSize);
+            glm::quat qTmp = ringBufferManager(rot, ringSize);
 
             numSamples++;
+            setNumSamples(numSamples);
 
             #if WANT_DEBUG
             if (_notZeroFlag) {
@@ -237,9 +242,7 @@ namespace controller {
 
                 if (signal >= getPosThreshold() ) {
 
-                    uintptr_t posRingIndex = getPosRingIndex();
                     glm::vec3 begin = getPosRingBuffer(posRingIndex); // first
-                    uintptr_t ringSize = getRingSize();
                     index = (posRingIndex - 1) % ringSize;
                     glm::vec3 end = getPosRingBuffer(index); // last
                     
@@ -382,17 +385,18 @@ namespace controller {
                      #endif
                 }
                 else {
-                    std::vector<glm::vec3>::iterator it = _posBuffer.begin();
-                    _posBuffer.insert(it, vTmp);
-                    std::vector<glm::quat>::iterator it1 = _rotBuffer.begin();
-                    _rotBuffer.insert(it1,qTmp);
+                    std::vector<glm::vec3>::iterator it = getPosBufferBegin();
+                    setPosBuffer(it, vTmp);
+                
+                    std::vector<glm::quat>::iterator it1 = getRotBufferBegin();
+                    setRotBuffer(it1, qTmp);
                 }
 
-                index = (_posRingIndex + _ringBack) % _ringSize;
-                glm::vec3 vTmp = _posRingBuffer[index];
-                glm::quat qTmp = _rotRingBuffer[index];
-                index = (_magRingIndex + _ringBack) % _ringSize;
-                signal = _magRingBuffer[index];
+                index = (posRingIndex + ringBack) % ringSize;
+                glm::vec3 vTmp = getPosRingBuffer(index);
+                glm::quat qTmp = getRotRingBuffer(index);
+                index = (magRingIndex + ringBack) % ringSize;
+                signal = getMagRingBuffer(index);
                 ret.translation = vTmp;
                 ret.rotation = qTmp;
 
@@ -404,11 +408,10 @@ namespace controller {
 
         }
 
-
-        uintptr_t len = _posBuffer.size();
+        uintptr_t len = getPosBufferSize();
         if (len > 0) {
-            ret.translation = _posBuffer[len-1];
-            _posBuffer.pop_back();
+            ret.translation = getPosBuffer(len - 1);
+            posBufferPop();
         }
         else {
             ret.translation = pos;
@@ -420,11 +423,11 @@ namespace controller {
             qDebug() << i << "\t" << _posBuffer[i].x << "\t" << _posBuffer[i].y << "\t" << _posBuffer[i].z;
         }
         #endif
-
-        len = _rotBuffer.size();
+         
+        len = getRotationBufferSize();
         if (len > 0) {
-            ret.rotation = _rotBuffer[len-1];
-            _rotBuffer.pop_back();
+            ret.rotation = getRotBuffer(len-1);
+            rotBufferPop();
         }
         else {
             ret.rotation = rot;

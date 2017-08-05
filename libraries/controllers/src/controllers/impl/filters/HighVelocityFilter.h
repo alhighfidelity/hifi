@@ -85,6 +85,13 @@ namespace controller {
         float getRotWeight() const { return _qWeight; }
         std::vector<glm::vec3>::iterator getPosBufferBegin() const { return _posBuffer.begin(); }
         std::vector<glm::quat>::iterator getRotBufferBegin() const { return _rotBuffer.begin(); }
+        uintptr_t getPosBufferSize() const { return _posBuffer.size(); }
+        glm::vec3 getPosBuffer(uintptr_t i) const { return _posBuffer[i]; }
+        void posBufferPop() const { _posBuffer.pop_back(); }
+        uintptr_t getRotationBufferSize() const { return _rotBuffer.size(); }
+        glm::quat getRotBuffer(uintptr_t i) const { return _rotBuffer[i]; }
+        void rotBufferPop() const { _rotBuffer.pop_back(); }
+
 
         void setPosRingBuffer(glm::vec3 v, uintptr_t i) const { _posRingBuffer[i] = v; }
         void setPosRingBuffer(glm::vec3 v) const { _posRingBuffer.push_back(v); }
@@ -99,6 +106,7 @@ namespace controller {
         void setNotZeroFlag(bool flag) const { _notZeroFlag = flag; }
         void setPosBuffer(std::vector<glm::vec3>::iterator it, glm::vec3 pos) const { _posBuffer.insert(it, pos); }
         void setRotBuffer(std::vector<glm::quat>::iterator it, glm::quat rot) const { _rotBuffer.insert(it, rot); }
+        void setNumSamples(uintptr_t num) const { _numberSamples = num; }
 
     };
 }
