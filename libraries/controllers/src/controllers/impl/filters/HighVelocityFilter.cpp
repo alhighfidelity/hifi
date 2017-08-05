@@ -271,7 +271,6 @@ namespace controller {
                         qDebug() << "index = " << index << endl;
                         #endif
                         setPosRingBuffer(end, index);
-                        _posRingBuffer[index] = end;
                     }
                    
 
@@ -302,65 +301,64 @@ namespace controller {
 
                     // set up step in rotation ring buffer
 
-                    index = _rotRingIndex;
-                    glm::quat qBegin = _rotRingBuffer[index];  // first
-                    index = (_rotRingIndex - 1) % _ringSize;
-                    glm::quat qEnd = _rotRingBuffer[index]; // last
+                    uintptr_t rotRingIndex = getRotRingIndex();
+                 
+                    glm::quat qBegin = getRotRingBuffer(rotRingIndex);  // first
+                    index = (rotRingIndex - 1) % ringSize;
+                    glm::quat qEnd = getRotRingBuffer(index); // last
+                    
+                    setRotRingBuffer(qBegin, rotRingIndex);
+                    uintptr_t qstart = (rotRingIndex + 1) % ringSize;
 
-                    _rotRingBuffer[_rotRingIndex] = qBegin;
-                    uintptr_t qstart = (_rotRingIndex + 1) % _ringSize;
 
-
-                    for (uintptr_t i = qstart; i < qstart + _ringSize - 1; i++) {
-                        index = i%_ringSize;
+                    for (uintptr_t i = qstart; i < qstart + ringSize - 1; i++) {
+                        index = i % ringSize;
                         #if WANT_DEBUG
                         qDebug() << "index = " << index << endl;
                         #endif
-                        _rotRingBuffer[index] = qEnd;
+                        setRotRingBuffer(qEnd, index);
                     }
 
 
                     // average over rotation step function
 
+                    float qWeight = getRotWeight();
+
                     glm::quat qAvg = qBegin;
 
-                    for (uintptr_t i = start; i < start + _ringSize - 1; i++) {
-                        index = i%_ringSize;
+                    for (uintptr_t i = start; i < start + ringSize - 1; i++) {
+                        index = i % ringSize;
                         #if WANT_DEBUG
                         qDebug() << "index = " << index << endl;
                         #endif
-                        qAvg = _rotRingBuffer[index] * _qWeight + (1.0f - _qWeight)*qAvg;
-                        _rotRingBuffer[index] = qAvg;
+                        glm::quat rot = getRotRingBuffer(index);
+                        qAvg = rot * qWeight + (1.0f - qWeight)*qAvg;
+                        setRotRingBuffer(qAvg, index);
                     }
-
-                    
 
                     // clear signal buffer
 
-                    for (uintptr_t i = 0; i < _ringSize; i++){
-                        index = i%_ringSize;
-                        _magRingBuffer[index] = 0.0f;
+                    for (uintptr_t i = 0; i < ringSize; i++){
+                        index = i % ringSize;
+                        setMagRingBuffer(0.0f, index);
                     }
                       
-
                     // copy position ring buffer to output
 
-
-                    for (uintptr_t i = _posRingIndex; i < _posRingIndex + _ringSize; i++) {
-                        uintptr_t index = i%_ringSize;
-                        glm::vec3 vTmp = _posRingBuffer[index];
-                        std::vector<glm::vec3>::iterator it = _posBuffer.begin();
-                        _posBuffer.insert(it, vTmp);
+                    for (uintptr_t i = posRingIndex; i < posRingIndex + ringSize; i++) {
+                        uintptr_t index = i % ringSize;
+                        glm::vec3 vTmp = getPosRingBuffer(index);
+                        std::vector<glm::vec3>::iterator it = getPosBufferBegin();
+                        setPosBuffer(it, vTmp);
                     }
                         
                     // copy rotation ring buffer to the output 
 
-
-                    for (uintptr_t i = _rotRingIndex; i < _rotRingIndex + _ringSize; i++) {
-                        uintptr_t index = i%_ringSize;
-                        glm::quat qTmp = _rotRingBuffer[index];
-                        std::vector<glm::quat>::iterator it = _rotBuffer.begin();
-                        _rotBuffer.insert(it, qTmp);
+                    for (uintptr_t i = rotRingIndex; i < rotRingIndex + ringSize; i++) {
+                        uintptr_t index = i % ringSize;
+                        glm::quat qTmp = getRotRingBuffer(index);
+                        std::vector<glm::quat>::iterator it = getRotBufferBegin();
+                        setRotBuffer(it, qTmp);
                     }
 
                     //#endif

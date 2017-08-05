@@ -82,7 +82,9 @@ namespace controller {
         float getPosWeight() const { return _pWeight;  }
         bool getNotZeroFlag() const { return _notZeroFlag; }
         uintptr_t getRingSize() const { return _ringSize; }
-
+        float getRotWeight() const { return _qWeight; }
+        std::vector<glm::vec3>::iterator getPosBufferBegin() const { return _posBuffer.begin(); }
+        std::vector<glm::quat>::iterator getRotBufferBegin() const { return _rotBuffer.begin(); }
 
         void setPosRingBuffer(glm::vec3 v, uintptr_t i) const { _posRingBuffer[i] = v; }
         void setPosRingBuffer(glm::vec3 v) const { _posRingBuffer.push_back(v); }
@@ -95,7 +97,8 @@ namespace controller {
         void setMagRingIndex(uintptr_t i) const { _magRingIndex = i; }
         void setPosAverage(glm::vec3 avg) const { _posAvg = avg; }
         void setNotZeroFlag(bool flag) const { _notZeroFlag = flag; }
-
+        void setPosBuffer(std::vector<glm::vec3>::iterator it, glm::vec3 pos) const { _posBuffer.insert(it, pos); }
+        void setRotBuffer(std::vector<glm::quat>::iterator it, glm::quat rot) const { _rotBuffer.insert(it, rot); }
 
     };
 }
