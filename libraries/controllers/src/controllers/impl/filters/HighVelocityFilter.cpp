@@ -84,9 +84,9 @@ namespace controller {
 
         uintptr_t len1 = _magRingBuffer.size();
 
-        qDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
+        qCDebug() << " Pos Buffer: _posRingIndex = " << _posRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
         for (uintptr_t i = 0; i < len1; i++) {
-            qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
+            qCDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z << endl;
         }
 
         #endif
@@ -119,9 +119,9 @@ namespace controller {
        #if WANT_DEBUG
         // write out buffer
         uintptr_t len1 = _rotRingBuffer.size();
-        qDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " index =  " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
+        qCDebug() << " Rot Buffer: _rotRingIndex = " << _rotRingIndex << " index =  " << index << " _ringBack = " << _ringBack << " size = " << size << " length before = " << len << " length after = " << len1 << endl;
         for (uintptr_t i = 0; i < len1; i++) {
-            qDebug() << i << "\t" << _rotRingBuffer[i].w << "\t" << _rotRingBuffer[i].x << "\t" << _rotRingBuffer[i].y << "\t" << _rotRingBuffer[i].z << endl;
+            qCDebug() << i << "\t" << _rotRingBuffer[i].w << "\t" << _rotRingBuffer[i].x << "\t" << _rotRingBuffer[i].y << "\t" << _rotRingBuffer[i].z << endl;
         }
          #endif
 
@@ -156,10 +156,10 @@ namespace controller {
         #if WANT_DEBUG
         // write out buffer
             uintptr_t len1 = _magRingBuffer.size();
-            qDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size
+            qCDebug() << " Mag Buffer: _magRingIndex = " << _magRingIndex << " index = " << index << " _ringBack = " << _ringBack << " size = " << size
                      << " length before = " << len << " length after = " << len1 << endl;
             for (uintptr_t i = 0; i < len1; i++) {
-                qDebug() << i << "\t" << _magRingBuffer[i] << endl;
+                qCDebug() << i << "\t" << _magRingBuffer[i] << endl;
             }
         #endif
 
@@ -188,11 +188,11 @@ namespace controller {
 
         #if WANT_DEBUG
         if (glm::dot(_notZeroFlag) != 0.0f) {
-            qDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
+            qCDebug() << " Filter Input: " << " " << pos.x << " " << pos.y << " " << pos.z << " "
                 << rot.w << " " << rot.x << " " << rot.y << " " << rot.z;
-               // << "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
-               // << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
-               // << "valid: " <<valid;
+                << "velocity: " << vel.x << " " << vel.y << " " << vel.z << " "
+                << "angular velocity: " << " " << a_vel.x << " " << a_vel.y << " " << a_vel.z << " " 
+                << "valid: " <<valid;
         }
         #endif
 
@@ -212,7 +212,7 @@ namespace controller {
             }
             else {
                 glm::vec3 posAvg = getPosAverage();
-                posAvg = pos * pWeight + (1.0f - pWeight)*posAvg;
+                posAvg = pos * pWeight + (1.0f - pWeight) * posAvg;
                 setPosAverage(posAvg);
             }
 
@@ -229,10 +229,10 @@ namespace controller {
 
             #if WANT_DEBUG
             if (_notZeroFlag) {
-                qDebug() << " After Ring Buffer - Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
-                    << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
-                     // " " << signal << endl;
-               //qDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
+                qCDebug() << " After Ring Buffer - Input: " << " " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " "
+                    << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z
+                    << " " << signal << endl;
+               qCDebug() << "threshold:\t " << _pThresh << "_numberSamples:\t " << _numberSamples << "_pSamples:\t " << _pSamples <<endl;
             }
              #endif
 
@@ -248,21 +248,22 @@ namespace controller {
                     
                     // write out buffer
 
-                   // qDebug() << " Load Position Buffer " << endl;
+                  
                      
                     #if WANT_DEBUG
                     // write out buffer before
-                    qDebug() << " Pos Buffer Before: _ringIndex = " << getPosRingIndex() << endl;
+                    qCDebug() << " Load Position Buffer " << endl;
+                    qCDebug() << " Pos Buffer Before: _ringIndex = " << getPosRingIndex() << endl;
                     uintptr_t len = getPosRingBufferSize();
                     for (uintptr_t i = 0; i < len; i++) {
                         glm::vec3 pos = getPosRingBuffer(i);
-                        qDebug() << i << "\t" << pos.x << "\t" << pos.y << "\t" << pos.z << endl;
+                        qCDebug() << i << "\t" << pos.x << "\t" << pos.y << "\t" << pos.z << endl;
                     }
                     #endif
 
                     // set up step in pos ring buffer
 
-                    //#if FILTER_OFF
+                    #ifndef FILTER_OFF
                     
                     setPosRingBuffer(begin, posRingIndex);
 
@@ -271,7 +272,7 @@ namespace controller {
                     for (uint i = start; i < start + ringSize - 1; i++) {
                         index = i % ringSize;
                         #if WANT_DEBUG
-                        qDebug() << "index = " << index << endl;
+                        qCDebug() << "index = " << index << endl;
                         #endif
                         setPosRingBuffer(end, index);
                     }
@@ -284,19 +285,19 @@ namespace controller {
                     for ( uint i = start; i < start + ringSize - 1; i++) {
                         index = i % ringSize;
                         #if WANT_DEBUG
-                        qDebug() << "index = " << index << endl;
+                        qCDebug() << "index = " << index << endl;
                         #endif
                         pos = getPosRingBuffer(index);
-                        posAvg = pos * pWeight + (1.0f - pWeight)*posAvg;
+                        posAvg = pos * pWeight + (1.0f - pWeight) * posAvg;
                         setPosRingBuffer(posAvg, index);
                     }
 
                    #if WANT_DEBUG
                     // write out buffer after
-                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
+                    qCDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex;
                     len = _posRingBuffer.size();
                     for (uint i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                        qCDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
 
                     #endif
@@ -317,7 +318,7 @@ namespace controller {
                     for (uintptr_t i = qstart; i < qstart + ringSize - 1; i++) {
                         index = i % ringSize;
                         #if WANT_DEBUG
-                        qDebug() << "index = " << index << endl;
+                        qCDebug() << "index = " << index << endl;
                         #endif
                         setRotRingBuffer(qEnd, index);
                     }
@@ -332,10 +333,10 @@ namespace controller {
                     for (uintptr_t i = start; i < start + ringSize - 1; i++) {
                         index = i % ringSize;
                         #if WANT_DEBUG
-                        qDebug() << "index = " << index << endl;
+                        qCDebug() << "index = " << index << endl;
                         #endif
                         glm::quat rot = getRotRingBuffer(index);
-                        qAvg = rot * qWeight + (1.0f - qWeight)*qAvg;
+                        qAvg = rot * qWeight + (1.0f - qWeight) * qAvg;
                         setRotRingBuffer(qAvg, index);
                     }
 
@@ -364,23 +365,23 @@ namespace controller {
                         setRotBuffer(it, qTmp);
                     }
 
-                    //#endif
+                    #endif
 
                      #if WANT_DEBUG
                     // write out buffer after
-                    qDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex << endl;
+                    qCDebug() << " Pos Buffer After: _ringIndex = " << _posRingIndex << endl;
                     len = _posRingBuffer.size();
                     for (uintptr_t i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
+                        qCDebug() << i << "\t" << _posRingBuffer[i].x << "\t" << _posRingBuffer[i].y << "\t" << _posRingBuffer[i].z;
                     }
                     
 
                     // write out buffer after
-                    qDebug() << " Mag Buffer After: _ringIndex = " << _magRingIndex << endl;
+                    qCDebug() << " Mag Buffer After: _ringIndex = " << _magRingIndex << endl;
 
                     len = _magRingBuffer.size();
                     for (uintptr_t i = 0; i < len; i++) {
-                        qDebug() << i << "\t" << _magRingBuffer[i] << endl;
+                        qCDebug() << i << "\t" << _magRingBuffer[i] << endl;
                     }
                      #endif
                 }
@@ -401,7 +402,7 @@ namespace controller {
                 ret.rotation = qTmp;
 
                 #if WANT_DEBUG
-                qDebug() << " Output: " << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t"
+                qCDebug() << " Output: " << vTmp.x << "\t" << vTmp.y << "\t" << vTmp.z << "\t"
                          << "\t" << "Rotation: " << rot.w << "\t "<< rot.x << "\t " << rot.y << "\t " << rot.z;
                 #endif
             }
@@ -418,15 +419,15 @@ namespace controller {
         }
        
         #if WANT_DEBUG
-        qDebug() << " Pos Output Buffer _posBuffer,  length = " << len << endl;
+        qCDebug() << " Pos Output Buffer _posBuffer,  length = " << len << endl;
         for (uintptr_t i = 0; i < len; i++) {
-            qDebug() << i << "\t" << _posBuffer[i].x << "\t" << _posBuffer[i].y << "\t" << _posBuffer[i].z;
+            qCDebug() << i << "\t" << _posBuffer[i].x << "\t" << _posBuffer[i].y << "\t" << _posBuffer[i].z;
         }
         #endif
          
         len = getRotationBufferSize();
         if (len > 0) {
-            ret.rotation = getRotBuffer(len-1);
+            ret.rotation = getRotBuffer(len - 1);
             rotBufferPop();
         }
         else {
@@ -436,7 +437,7 @@ namespace controller {
         #if WANT_DEBUG
 
         if (_notZeroFlag) {
-            qDebug() << " Filter Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
+            qCDebug() << " Filter Output: " << vTmp.x << " " << vTmp.y << " " << vTmp.z << " " << qTmp.w << " " << qTmp.x << " " << qTmp.y << " " << qTmp.z;
         }
 
         #endif
